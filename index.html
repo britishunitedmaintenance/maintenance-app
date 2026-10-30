@@ -1,0 +1,2161 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>عقود الصيانة</title>
+<!-- مكتبة Excel -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- مكتبة تحويل HTML إلى PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Tahoma, Arial, sans-serif;
+    background: #F0F2F5;
+    margin: 0;
+    padding: 0;
+    direction: rtl;
+    color: #1F2937;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1150px; margin: 0 auto; padding: 16px; }
+  @media (min-width: 720px) { .wrap { padding: 28px; } }
+
+  .app-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .app-icon {
+    width: 60px; height: 60px;
+    background: #1F4E78;
+    color: #fff;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 3px 10px rgba(31,78,120,0.18);
+    font-size: 16px;
+    font-weight: bold;
+    overflow: hidden;
+  }
+  h1 { font-size: 19px; font-weight: 800; margin: 0; color: #111827; letter-spacing: -0.2px; }
+  .sub { font-size: 12px; color: #6B7280; margin-top: 2px; }
+
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .btn {
+    background: #1F4E78;
+    color: #fff;
+    border: none;
+    padding: 11px 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+    white-space: nowrap;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn:hover { background: #163a5a; }
+  .btn-ghost {
+    background: #fff;
+    color: #1F4E78;
+    border: 1px solid #D8E3EE;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+  }
+  .btn-ghost:hover { background: #EAF1F8; }
+  .btn-ghost:active { transform: scale(0.97); }
+  .btn-ghost.active-toggle { background: #1F4E78; color: #fff; border-color: #1F4E78; }
+  .btn-sm { padding: 7px 12px; font-size: 12px; border-radius: 8px; }
+  .btn-full { width: 100%; }
+
+  .count-pill {
+    background: #EAF1F8;
+    color: #1F4E78;
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 700;
+  }
+
+  .search-wrap { position: relative; margin-bottom: 12px; }
+  .search-input {
+    width: 100%;
+    padding: 11px 40px 11px 14px;
+    border: 1px solid #D8E3EE;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-family: inherit;
+    color: #1F2937;
+    background: #fff;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease;
+  }
+  .search-input:focus { outline: none; border-color: #1F4E78; }
+  .search-icon {
+    position: absolute;
+    top: 50%;
+    right: 13px;
+    transform: translateY(-50%);
+    color: #9CA3AF;
+    pointer-events: none;
+    font-size: 15px;
+  }
+  html[dir="ltr"] .search-input, [dir="ltr"] .search-input { padding: 11px 14px 11px 40px; }
+  html[dir="ltr"] .search-icon, [dir="ltr"] .search-icon { right: auto; left: 13px; }
+  .search-clear {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    background: #EAF1F8;
+    color: #1F4E78;
+    border: none;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    display: none;
+  }
+  [dir="ltr"] .search-clear { left: auto; right: 10px; }
+  .search-wrap.has-value .search-clear { display: block; }
+
+  .filter-dropdown-wrap { position: relative; display: inline-block; }
+  .filter-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(16,24,40,0.12);
+    min-width: 200px;
+    overflow: hidden;
+    z-index: 40;
+  }
+  .filter-menu.show { display: block; }
+  .filter-menu-item {
+    display: block;
+    width: 100%;
+    text-align: right;
+    background: #fff;
+    border: none;
+    padding: 11px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1F2937;
+    cursor: pointer;
+  }
+  .filter-menu-item:hover { background: #F5F7FA; }
+  .filter-menu-item + .filter-menu-item { border-top: 1px solid #F0F1F3; }
+
+  .card {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #E8EAED;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(16,24,40,0.04);
+  }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    background: #1F4E78;
+    color: #fff;
+    padding: 12px 10px;
+    text-align: center;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 11px 8px;
+    text-align: center;
+    border-bottom: 1px solid #F0F1F3;
+    white-space: nowrap;
+  }
+  tbody tr { cursor: pointer; transition: background 0.15s ease; }
+  tbody tr:hover { background: #EAF1F8; }
+
+  .status-badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .status-green { background: #EAF3DE; color: #3B6D11; }
+  .status-orange { background: #FAEEDA; color: #854F0B; }
+  .status-red { background: #FCEBEB; color: #A32D2D; }
+
+  .empty-state { text-align: center; padding: 56px 20px; color: #9CA3AF; }
+
+  .cards-list { display: none; flex-direction: column; gap: 10px; }
+  .contract-card {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #E8EAED;
+    padding: 14px;
+    box-shadow: 0 1px 3px rgba(16,24,40,0.04);
+    cursor: pointer;
+  }
+  .contract-card:hover { background: #FAFBFC; border-color: #1F4E78; }
+  .cc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+  .cc-name { font-weight: 800; font-size: 15px; color: #111827; }
+  .cc-meta { font-size: 12.5px; color: #6B7280; line-height: 1.6; }
+
+  @media (max-width: 760px) {
+    .table-scroll { display: none; }
+    .cards-list { display: flex; }
+  }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(17,24,39,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 16px;
+  }
+  .overlay.show { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 440px;
+    max-width: 100%;
+    padding: 22px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal.wide { width: 580px; }
+  .modal h2 { font-size: 17px; margin: 0 0 4px; color: #111827; font-weight: 800; }
+  .modal .modal-sub { font-size: 12px; color: #6B7280; margin-bottom: 16px; line-height: 1.6; }
+  .field { margin-bottom: 14px; text-align: right; }
+  .field label { display: block; font-size: 13px; color: #4B5563; margin-bottom: 5px; font-weight: 700; }
+  .field input, .field select {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #D1D5DB;
+    border-radius: 9px;
+    font-size: 15px;
+    direction: rtl;
+    font-family: inherit;
+    background: #fff;
+  }
+  .field input:focus, .field select:focus { outline: none; border-color: #1F4E78; box-shadow: 0 0 0 3px rgba(31,78,120,0.1); }
+  .row2 { display: flex; gap: 10px; flex-wrap: wrap; }
+  .row2 .field { flex: 1; min-width: 130px; }
+  .err { color: #C0392B; font-size: 12px; margin-top: 4px; display: none; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+  .modal-actions .btn, .modal-actions .btn-ghost { flex: 1; }
+
+  /* Details Modal Specific Styles */
+  .details-header { background: #1F4E78; color: #fff; padding: 20px; margin: -22px -22px 20px -22px; border-radius: 16px 16px 0 0; text-align: center; }
+  .details-header h2 { color: #fff; margin: 0 0 8px 0; font-size: 20px; }
+  .details-header .modal-sub { color: #D6E5F2; margin: 0; font-size: 13px; line-height: 1.8; }
+  .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+  .action-btn { background: #F5F7FA; border: 1px solid #D1D5DB; border-radius: 12px; padding: 20px 10px; text-align: center; cursor: pointer; color: #1F4E78; font-weight: 700; transition: all 0.2s ease; }
+  .action-btn:hover { background: #EAF1F8; border-color: #1F4E78; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(31,78,120,0.1); }
+  .action-btn span { display: block; font-size: 12px; color: #6B7280; font-weight: 600; margin-top: 8px; }
+
+  /* Lists inside Modals */
+  .visits-list, .pay-list { list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto; }
+  .visits-list li, .pay-list li {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;
+    padding: 10px 6px; border-bottom: 1px solid #F0F1F3; font-size: 13px; border-radius: 8px;
+  }
+  .visits-list li:last-child, .pay-list li:last-child { border-bottom: none; }
+  .visit-left, .pay-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .visit-left input[type=checkbox], .pay-left input[type=checkbox] { width: 18px; height: 18px; cursor: pointer; accent-color: #1F4E78; }
+  .visit-num { color: #9CA3AF; font-size: 12px; min-width: 20px; }
+  .visit-date-input, .pay-date-input, .pay-amount-input, .pay-method-select { border: 1px solid #D1D5DB; border-radius: 7px; padding: 5px 7px; font-size: 13px; direction: rtl; }
+  .pay-amount-input { width: 90px; }
+  .pay-method-select { width: 80px; }
+  .visits-list li.row-green, .pay-list li.row-green { background: #F6FAF0; }
+  .visits-list li.row-orange, .pay-list li.row-orange { background: #FDF7EB; }
+  .visits-list li.row-red, .pay-list li.row-red { background: #FDEDED; }
+
+  .visit-attach-row { margin-top: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; width: 100%;}
+  .attach-btn, .attach-chip, .share-btn {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; border-radius: 7px; cursor: pointer;
+  }
+  .attach-btn { color: #1F4E78; background: #EAF1F8; padding: 5px 10px; border: 1px dashed #B9CDE0; }
+  .attach-chip { color: #1F4E78; background: #EAF1F8; padding: 5px 10px; border: none; }
+  .share-btn { color: #1F4E78; background: #fff; padding: 5px 10px; border: 1px solid #B9CDE0; }
+  .attach-btn:hover, .attach-chip:hover, .share-btn:hover { background: #D6E5F2; }
+  .attach-remove { font-size: 11.5px; color: #C0392B; background: none; border: none; cursor: pointer; font-weight: 600; }
+  .attach-remove:hover { text-decoration: underline; }
+
+  .visit-dropdown-wrap { position: relative; display: inline-block; }
+  .visit-menu { display: none; position: absolute; top: calc(100% + 4px); right: 0; background: #fff; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 6px 18px rgba(16,24,40,0.12); min-width: 190px; overflow: hidden; z-index: 45; }
+  .visit-menu.show { display: block; }
+
+  /* Photos & Notes Grid */
+  .notes-modal { width: 620px; }
+  .photo-grid { display:flex; flex-wrap:wrap; gap:12px; }
+  .photo-card { width: 150px; border: 1px solid #E5E7EB; border-radius: 10px; overflow: hidden; background:#fff; position: relative; }
+  .photo-card img { width:100%; height:100px; object-fit:cover; display:block; cursor:pointer; }
+  .photo-card .pdf-preview { width:100%; height:100px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#FCEBEB; color:#A32D2D; cursor:pointer; font-weight:bold; }
+  .photo-card .photo-title-input { width:100%; border:none; border-top:1px solid #F0F1F3; padding:6px 8px; font-size:12px; text-align:center; }
+  .photo-card .photo-title-input:focus { outline:none; background:#F5F7FA; }
+  .photo-card .photo-remove { display:block; width:100%; background:#fff; border:none; border-top:1px solid #F0F1F3; color:#C0392B; font-size:11.5px; padding:5px; cursor:pointer; font-weight:600; }
+  .photo-remove:hover { background:#FCEBEB; }
+  .add-photo-card { width: 150px; height: 100%; min-height: 130px; border: 2px dashed #B9CDE0; border-radius: 10px; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:6px; color:#1F4E78; font-size:13px; font-weight:700; cursor:pointer; background:#F5F9FC; }
+  .add-photo-card:hover { background:#EAF1F8; }
+  .text-notes-list { margin-top:10px; }
+
+  .report-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: #A32D2D; background: #FCEBEB; padding: 5px 10px; border-radius: 7px; cursor: pointer; border: 1px dashed #E3B3B3; }
+  .report-btn:hover { background: #F8DADA; }
+
+  /* Report Styles */
+  .report-modal { width: 720px; }
+  .report-lang-toggle { display: flex; gap: 8px; }
+  .lang-seg-btn { flex: 1; padding: 9px 12px; border-radius: 8px; border: 1px solid #D1D5DB; background: #fff; color: #4B5563; font-weight: 700; font-size: 13px; cursor: pointer; }
+  .lang-seg-btn.active { background: #1F4E78; color: #fff; border-color: #1F4E78; }
+  .report-section-title { background: #1F4E78; color: #fff; font-weight: 800; font-size: 13px; padding: 8px 12px; border-radius: 8px; margin: 14px 0 8px; }
+  .report-item-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 6px; border-bottom: 1px solid #F0F1F3; flex-wrap: wrap; }
+  .report-item-label { font-size: 13px; color: #1F2937; flex: 1; min-width: 180px; }
+  .report-status-group { display: flex; gap: 6px; flex-shrink: 0; }
+  .status-opt { font-size: 11.5px; font-weight: 700; padding: 5px 10px; border-radius: 7px; border: 1px solid #D1D5DB; background: #fff; color: #6B7280; cursor: pointer; }
+  .status-opt.sel-works { background: #EAF3DE; color: #3B6D11; border-color: #3B6D11; }
+  .status-opt.sel-not_working { background: #FCEBEB; color: #A32D2D; border-color: #A32D2D; }
+  .status-opt.sel-not_present { background: #EEF0F2; color: #4B5563; border-color: #9CA3AF; }
+  .report-notes-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .report-notes-row input { flex: 1; }
+  .note-remove { background: none; border: none; color: #C0392B; cursor: pointer; font-size: 16px; }
+  .sig-box { border: 1px dashed #D1D5DB; border-radius: 8px; background: #F9FAFB; }
+  .sig-box canvas { width: 100%; height: 130px; display: block; touch-action: none; cursor: crosshair; }
+  .sig-clear { font-size: 11.5px; color: #1F4E78; background: none; border: none; cursor: pointer; margin-top: 4px; font-weight: 600; }
+
+  /* Misc */
+  .add-pay-row { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; margin-top: 14px; padding-top: 14px; border-top: 1px solid #E5E7EB; }
+  .add-pay-row .field { margin-bottom: 0; flex: 1; min-width: 110px; }
+  .add-pay-row .btn { flex: none; padding: 10px 16px; }
+  .pay-remove { background: none; border: none; color: #C0392B; cursor: pointer; font-size: 18px; line-height: 1; }
+  .totals-line { font-size: 12.5px; color: #4B5563; margin-top: 12px; text-align: left; font-weight: 600; }
+
+  .toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: #1F2937; color: #fff; padding: 11px 22px; border-radius: 10px; font-size: 13px; font-weight: 700;
+    opacity: 0; pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; z-index: 100;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .checkbox-field label { display: flex; align-items: center; gap: 8px; font-weight: 700; cursor: pointer; }
+  .checkbox-field input[type=checkbox] { width: 18px; height: 18px; accent-color: #1F4E78; flex-shrink: 0; }
+  
+  .action-col { display: none; }
+  .edit-mode-active .action-col { display: table-cell; }
+  .edit-mode-active .cards-list .cc-actions { display: flex; }
+  .cards-list .cc-actions { display: none; margin-top: 10px; }
+
+</style>
+</head>
+<body>
+
+<input type="file" id="checkUploadInput" accept="image/*,application/pdf" style="display:none;" onchange="handlePaymentCheckUpload(event)">
+<input type="file" id="visitAttachInput" accept="image/*,application/pdf" style="display:none;" onchange="handleVisitAttachUpload(event)">
+<input type="file" id="noteAttachInput" accept="image/*,application/pdf" style="display:none;" onchange="handleNoteAttachUpload(event)">
+
+<div class="wrap">
+  <div class="app-header">
+    <div class="app-icon"><img src="" id="appLogoImg" alt="British United" style="width:100%;height:100%;object-fit:contain;"></div>
+    <div>
+      <h1 id="appTitle" data-ar="عقود الصيانة" data-en="Maintenance Contracts">عقود الصيانة</h1>
+      <div class="sub">
+        <span id="count" class="count-pill">0 عقد</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="search-wrap" id="searchWrap">
+    <input type="text" id="searchInput" class="search-input" data-ar-ph="بحث باسم العميل أو رقم الهاتف" data-en-ph="Search by name or phone" placeholder="بحث باسم العميل أو رقم الهاتف" oninput="onSearchInput()">
+    <button class="search-clear" id="searchClearBtn" onclick="clearSearch()" type="button">×</button>
+    <span class="search-icon">🔍</span>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn-ghost" id="langToggleBtn">EN</button>
+    <div class="filter-dropdown-wrap">
+      <button class="btn-ghost" id="filterBtn" onclick="toggleFilterMenu(event)" data-ar="تصفية" data-en="Filter">تصفية</button>
+      <div class="filter-menu" id="filterMenu">
+        <button class="filter-menu-item" onclick="setFilter('all')" data-ar="الكل" data-en="All">الكل</button>
+        <button class="filter-menu-item" onclick="setFilter('overdue_pay')" data-ar="الدفعات المتأخرة" data-en="Overdue Payments">الدفعات المتأخرة</button>
+        <button class="filter-menu-item" onclick="setFilter('overdue_visit')" data-ar="الزيارات المتأخرة" data-en="Overdue Visits">الزيارات المتأخرة</button>
+      </div>
+    </div>
+    <button class="btn-ghost" id="exportExcelBtn" onclick="exportExcel()">Excel</button>
+    <button class="btn-ghost" id="toggleEditModeBtn" onclick="toggleEditMode()" data-ar="تعديل العقود" data-en="Edit Contracts">تعديل العقود</button>
+    <button class="btn-ghost sync-btn" id="downloadCloudBtn" style="display:none;" onclick="manualDownloadFromCloud()" data-ar="تحميل من السحابة" data-en="Download from Cloud">تحميل من السحابة</button>
+    <button class="btn-ghost sync-btn" id="uploadCloudBtn" style="display:none;" onclick="document.getElementById('uploadCloudFileInput').click()" data-ar="رفع للسحابة" data-en="Upload to Cloud">رفع للسحابة</button>
+    <input type="file" id="uploadCloudFileInput" accept=".json,application/json" style="display:none;" onchange="handleUploadFileSelected(event)">
+    <button class="btn" id="addBtn" onclick="openAddModal()" data-ar="إضافة عقد" data-en="Add Contract">إضافة عقد</button>
+  </div>
+
+  <div class="card" id="mainTableCard">
+    <div class="table-scroll">
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th data-ar="اسم العميل" data-en="Customer Name">اسم العميل</th>
+            <th data-ar="تاريخ التوقيع" data-en="Signing Date">تاريخ التوقيع</th>
+            <th data-ar="رقم الهاتف" data-en="Phone">رقم الهاتف</th>
+            <th data-ar="العنوان" data-en="Address">العنوان</th>
+            <th data-ar="معدل الزيارات" data-en="Visit Frequency">معدل الزيارات</th>
+            <th class="action-col" data-ar="إجراءات" data-en="Actions">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div id="emptyStateTable" class="empty-state" style="display:none;" data-ar="لا توجد عقود تطابق البحث أو التصفية." data-en="No contracts match your search or filter.">
+      لا توجد عقود تطابق البحث أو التصفية.
+    </div>
+  </div>
+
+  <div class="cards-list" id="cardsList"></div>
+  <div id="emptyStateCards" class="empty-state card" style="display:none; margin-top:10px;" data-ar="لا توجد عقود تطابق البحث أو التصفية." data-en="No contracts match your search or filter.">
+    لا توجد عقود تطابق البحث أو التصفية.
+  </div>
+
+</div>
+
+<!-- DETAILS OVERLAY -->
+<div class="overlay" id="detailsOverlay">
+  <div class="modal wide" style="padding: 0 0 22px 0; overflow: hidden;">
+    <div class="details-header">
+      <h2 id="detailsTitle">تفاصيل العقد</h2>
+      <div class="modal-sub" id="detailsSub"></div>
+    </div>
+    
+    <div style="padding: 0 22px; max-height: 70vh; overflow-y: auto;">
+      <div class="action-grid">
+        <div class="action-btn" onclick="openPaymentsFromDetails()">
+          <div data-ar="إدارة الدفعات" data-en="Manage Payments">إدارة الدفعات</div>
+          <span id="detPaysCount"></span>
+        </div>
+        <div class="action-btn" onclick="openVisitsFromDetails()">
+          <div data-ar="إدارة الزيارات" data-en="Manage Visits">إدارة الزيارات</div>
+          <span id="detVisitsCount"></span>
+        </div>
+        <div class="action-btn" onclick="downloadContractPDF(currentDetailsIdx)">
+          <div data-ar="تحميل بيانات العقد" data-en="Download Contract">تحميل بيانات العقد</div>
+          <span id="detDownloadInfo">PDF</span>
+        </div>
+      </div>
+
+      <div style="border-top: 1px solid #E5E7EB; padding-top: 16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+           <h3 style="margin:0; font-size:15px; color:#1F4E78; font-weight:800;" data-ar="الملاحظات" data-en="Notes">الملاحظات</h3>
+           <button class="btn-ghost btn-sm" onclick="openNotesFromDetails()" data-ar="تعديل الملاحظات" data-en="Edit Notes">تعديل الملاحظات</button>
+        </div>
+        <div id="readOnlyNotesContainer"></div>
+      </div>
+
+      <div class="modal-actions" style="margin-top:24px; border-top: 1px solid #E5E7EB; padding-top:16px;">
+        <button class="btn" onclick="closeDetailsModal()" data-ar="إغلاق" data-en="Close">إغلاق</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2 data-ar="إضافة عقد جديد" data-en="Add New Contract">إضافة عقد جديد</h2>
+    <div class="field">
+      <label data-ar="اسم العميل" data-en="Customer Name">اسم العميل</label>
+      <input type="text" id="f_name">
+      <div class="err" id="err_name" data-ar="أدخل اسم العميل" data-en="Enter customer name">أدخل اسم العميل</div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label data-ar="تاريخ توقيع العقد" data-en="Signing Date">تاريخ توقيع العقد</label>
+        <input type="date" id="f_date">
+        <div class="err" id="err_date" data-ar="أدخل تاريخ التوقيع" data-en="Enter signing date">أدخل تاريخ التوقيع</div>
+      </div>
+      <div class="field">
+        <label data-ar="رقم الهاتف" data-en="Phone Number">رقم الهاتف</label>
+        <input type="tel" id="f_phone">
+        <div class="err" id="err_phone" data-ar="أدخل رقم الهاتف" data-en="Enter phone number">أدخل رقم الهاتف</div>
+      </div>
+    </div>
+    <div class="field">
+      <label data-ar="العنوان" data-en="Address">العنوان</label>
+      <input type="text" id="f_addr">
+      <div class="err" id="err_addr" data-ar="أدخل العنوان" data-en="Enter address">أدخل العنوان</div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label data-ar="معدل الزيارات السنوي" data-en="Annual Visit Frequency">معدل الزيارات السنوي</label>
+        <select id="f_freq">
+          <option value="12" data-ar="شهرياً (12 زيارة/سنة)" data-en="Monthly (12 visits/year)">شهرياً (12 زيارة/سنة)</option>
+          <option value="6" data-ar="كل شهرين (6 زيارات/سنة)" data-en="Every 2 months (6 visits/year)">كل شهرين (6 زيارات/سنة)</option>
+          <option value="4" data-ar="كل 3 أشهر (4 زيارات/سنة)" data-en="Every 3 months (4 visits/year)">كل 3 أشهر (4 زيارات/سنة)</option>
+          <option value="3" data-ar="كل 4 أشهر (3 زيارات/سنة)" data-en="Every 4 months (3 visits/year)">كل 4 أشهر (3 زيارات/سنة)</option>
+          <option value="2" selected data-ar="نصف سنوي (زيارتين/سنة)" data-en="Semi-annual (2 visits/year)">نصف سنوي (زيارتين/سنة)</option>
+          <option value="1" data-ar="سنوي (زيارة واحدة/سنة)" data-en="Annual (1 visit/year)">سنوي (زيارة واحدة/سنة)</option>
+          <option value="custom" data-ar="مخصص..." data-en="Custom...">مخصص...</option>
+        </select>
+      </div>
+      <div class="field" id="customFreqField" style="display:none;">
+        <label data-ar="عدد الزيارات في السنة" data-en="Visits per Year">عدد الزيارات في السنة</label>
+        <input type="number" id="f_freq_custom" min="1" max="52" placeholder="مثال: 24">
+      </div>
+      <div class="field">
+        <label data-ar="مدة العقد (سنوات)" data-en="Contract Duration (years)">مدة العقد (سنوات)</label>
+        <input type="number" id="f_duration" min="0.5" step="0.5" value="1">
+        <div class="err" id="err_duration" data-ar="أدخل مدة صحيحة" data-en="Enter a valid duration">أدخل مدة صحيحة</div>
+      </div>
+    </div>
+    <div class="preview-box" id="previewBox" style="background:#F5F7FA; border:1px solid #E5E7EB; border-radius:9px; padding:10px 12px; font-size:12px; color:#4B5563; margin-bottom:14px;" data-ar="عدد الزيارات المتوقع: —" data-en="Expected Visits: —">عدد الزيارات المتوقع: —</div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="cancelBtn" data-ar="إلغاء" data-en="Cancel">إلغاء</button>
+      <button class="btn" id="saveBtn" data-ar="حفظ" data-en="Save">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="visitsOverlay">
+  <div class="modal wide">
+    <h2 id="visitsTitle">زيارات العقد</h2>
+    <div class="modal-sub" id="visitsSub"></div>
+    <ul class="visits-list" id="visitsList"></ul>
+    <div class="modal-actions">
+      <button class="btn" id="closeVisitsBtn" style="flex:none; margin-right:auto;" data-ar="تم" data-en="Done">تم</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="reportOverlay">
+  <div class="modal report-modal">
+    <h2 data-ar="تقرير الصيانة الدورية" data-en="Periodic Maintenance Report">تقرير الصيانة الدورية</h2>
+    <div class="modal-sub" id="reportSub"></div>
+    <div class="field">
+      <div class="report-lang-toggle">
+        <button type="button" id="rpLangAr" class="lang-seg-btn active" onclick="setReportLang('ar')">العربية</button>
+        <button type="button" id="rpLangEn" class="lang-seg-btn" onclick="setReportLang('en')">English</button>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label data-ar="التاريخ" data-en="Date">التاريخ</label>
+        <input type="date" id="rp_date">
+      </div>
+    </div>
+    <div id="reportChecklist"></div>
+    <div class="report-section-title" data-ar="ملاحظات" data-en="Notes">ملاحظات</div>
+    <div id="reportNotes"></div>
+    <button class="btn-ghost btn-sm" id="addNoteBtn" type="button" data-ar="إضافة ملاحظة" data-en="Add Note">إضافة ملاحظة</button>
+
+    <div class="report-section-title" data-ar="صور مرفقة" data-en="Attached Photos">صور مرفقة</div>
+    <div class="photo-grid" id="reportPhotoGrid"></div>
+
+    <div class="report-section-title" data-ar="الفاحص" data-en="Inspector">الفاحص</div>
+    <div class="row2">
+      <div class="field"><label data-ar="الاسم" data-en="Name">الاسم</label><input type="text" id="rp_inspector_name"></div>
+    </div>
+    <div class="field">
+      <label data-ar="التوقيع" data-en="Signature">التوقيع</label>
+      <div class="sig-box"><canvas id="sigInspector"></canvas></div>
+      <button class="sig-clear" type="button" onclick="clearSignature('sigInspector')" data-ar="مسح التوقيع" data-en="Clear Signature">مسح التوقيع</button>
+    </div>
+
+    <div class="report-section-title" data-ar="العميل" data-en="Customer">العميل</div>
+    <div class="row2">
+      <div class="field"><label data-ar="الاسم" data-en="Name">الاسم</label><input type="text" id="rp_customer_name"></div>
+    </div>
+    <div class="field">
+      <label data-ar="التوقيع" data-en="Signature">التوقيع</label>
+      <div class="sig-box"><canvas id="sigCustomer"></canvas></div>
+      <button class="sig-clear" type="button" onclick="clearSignature('sigCustomer')" data-ar="مسح التوقيع" data-en="Clear Signature">مسح التوقيع</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="reportCancelBtn" data-ar="إلغاء" data-en="Cancel">إلغاء</button>
+      <button class="btn" id="reportSaveBtn" data-ar="حفظ التقرير" data-en="Save Report">حفظ التقرير</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="paymentsOverlay">
+  <div class="modal wide">
+    <h2 id="paymentsTitle">دفعات العقد</h2>
+    <div class="modal-sub" id="paymentsSub"></div>
+    <div class="field checkbox-field">
+      <label>
+        <input type="checkbox" id="pm_free" onchange="toggleFreeContract()">
+        <span data-ar="العقد مجاني" data-en="Free Contract">العقد مجاني</span>
+      </label>
+    </div>
+    <div id="pm_nonfree_section">
+      <div class="field checkbox-field">
+        <label>
+          <input type="checkbox" id="pm_first_pay" onchange="toggleFirstPayment()">
+          <span data-ar="الدفعة الأولى عند التوقيع" data-en="First Payment at Signing">الدفعة الأولى عند التوقيع</span>
+        </label>
+      </div>
+      <ul class="pay-list" id="paymentsList"></ul>
+      <div class="totals-line" id="paymentsTotals"></div>
+      <div class="add-pay-row">
+        <div class="field">
+          <label data-ar="المبلغ" data-en="Amount">المبلغ</label>
+          <input type="number" min="0" step="0.001" class="pay-amount-input" id="np_amount" style="width:100%;">
+        </div>
+        <div class="field">
+          <label data-ar="تاريخ الاستحقاق" data-en="Due Date">تاريخ الاستحقاق</label>
+          <input type="date" id="np_date">
+        </div>
+        <button class="btn" id="addPaymentBtn" data-ar="إضافة دفعة" data-en="Add Payment">إضافة دفعة</button>
+      </div>
+    </div>
+    <div id="pm_free_note" class="preview-box" style="display:none; background:#F5F7FA; border:1px solid #E5E7EB; border-radius:9px; padding:10px 12px; font-size:12px; color:#4B5563; margin-bottom:14px;" data-ar="هذا العقد مجاني — لا توجد دفعات مستحقة." data-en="This contract is free — no payments due.">هذا العقد مجاني — لا توجد دفعات مستحقة.</div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="closePaymentsBtn" style="flex:none; margin-right:auto;" data-ar="إغلاق" data-en="Close">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="editOverlay">
+  <div class="modal">
+    <h2 data-ar="تعديل بيانات العقد" data-en="Edit Contract">تعديل بيانات العقد</h2>
+    <div class="modal-sub" data-ar="تغيير معدل الزيارات أو المدة أو تاريخ التوقيع سيعيد حساب جدول الزيارات." data-en="Changing frequency, duration, or date will recalculate the visits schedule.">تغيير معدل الزيارات أو المدة أو تاريخ التوقيع سيعيد حساب جدول الزيارات.</div>
+    <div class="field">
+      <label data-ar="اسم العميل" data-en="Customer Name">اسم العميل</label>
+      <input type="text" id="e_name">
+      <div class="err" id="e_err_name" data-ar="أدخل اسم العميل" data-en="Enter customer name">أدخل اسم العميل</div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label data-ar="تاريخ توقيع العقد" data-en="Signing Date">تاريخ توقيع العقد</label>
+        <input type="date" id="e_date">
+        <div class="err" id="e_err_date" data-ar="أدخل تاريخ التوقيع" data-en="Enter signing date">أدخل تاريخ التوقيع</div>
+      </div>
+      <div class="field">
+        <label data-ar="رقم الهاتف" data-en="Phone Number">رقم الهاتف</label>
+        <input type="tel" id="e_phone">
+        <div class="err" id="e_err_phone" data-ar="أدخل رقم الهاتف" data-en="Enter phone number">أدخل رقم الهاتف</div>
+      </div>
+    </div>
+    <div class="field">
+      <label data-ar="العنوان" data-en="Address">العنوان</label>
+      <input type="text" id="e_addr">
+      <div class="err" id="e_err_addr" data-ar="أدخل العنوان" data-en="Enter address">أدخل العنوان</div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label data-ar="معدل الزيارات السنوي" data-en="Annual Visit Frequency">معدل الزيارات السنوي</label>
+        <select id="e_freq">
+          <option value="12" data-ar="شهرياً (12 زيارة/سنة)" data-en="Monthly (12 visits/year)">شهرياً (12 زيارة/سنة)</option>
+          <option value="6" data-ar="كل شهرين (6 زيارات/سنة)" data-en="Every 2 months (6 visits/year)">كل شهرين (6 زيارات/سنة)</option>
+          <option value="4" data-ar="كل 3 أشهر (4 زيارات/سنة)" data-en="Every 3 months (4 visits/year)">كل 3 أشهر (4 زيارات/سنة)</option>
+          <option value="3" data-ar="كل 4 أشهر (3 زيارات/سنة)" data-en="Every 4 months (3 visits/year)">كل 4 أشهر (3 زيارات/سنة)</option>
+          <option value="2" data-ar="نصف سنوي (زيارتين/سنة)" data-en="Semi-annual (2 visits/year)">نصف سنوي (زيارتين/سنة)</option>
+          <option value="1" data-ar="سنوي (زيارة واحدة/سنة)" data-en="Annual (1 visit/year)">سنوي (زيارة واحدة/سنة)</option>
+          <option value="custom" data-ar="مخصص..." data-en="Custom...">مخصص...</option>
+        </select>
+      </div>
+      <div class="field" id="e_customFreqField" style="display:none;">
+        <label data-ar="عدد الزيارات في السنة" data-en="Visits per Year">عدد الزيارات في السنة</label>
+        <input type="number" id="e_freq_custom" min="1" max="52">
+      </div>
+      <div class="field">
+        <label data-ar="مدة العقد (سنوات)" data-en="Contract Duration (years)">مدة العقد (سنوات)</label>
+        <input type="number" id="e_duration" min="0.5" step="0.5">
+        <div class="err" id="e_err_duration" data-ar="أدخل مدة صحيحة" data-en="Enter a valid duration">أدخل مدة صحيحة</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="editCancelBtn" data-ar="إلغاء" data-en="Cancel">إلغاء</button>
+      <button class="btn" id="editSaveBtn" data-ar="حفظ التعديلات" data-en="Save Changes">حفظ التعديلات</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="contractNotesOverlay">
+  <div class="modal notes-modal">
+    <h2 data-ar="تعديل الملاحظات" data-en="Edit Contract Notes">تعديل الملاحظات</h2>
+    <div class="modal-sub" id="contractNotesSub"></div>
+    <div class="field">
+      <label data-ar="المرفقات (صور / PDF)" data-en="Attachments (Photos / PDF)">المرفقات (صور / PDF)</label>
+      <div class="photo-grid" id="contractPhotoGrid"></div>
+    </div>
+    <div class="field">
+      <label data-ar="ملاحظات نصية" data-en="Text Notes">ملاحظات نصية</label>
+      <div class="text-notes-list" id="contractTextNotesList"></div>
+      <button class="btn-ghost btn-sm" id="addContractNoteBtn" type="button" data-ar="إضافة ملاحظة" data-en="Add Note">إضافة ملاحظة</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="closeContractNotesBtn" style="flex:none; margin-right:auto;" data-ar="تم وحفظ" data-en="Done & Save">تم وحفظ</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" data-ar="تم الحفظ بنجاح" data-en="Saved Successfully">تم الحفظ بنجاح</div>
+
+<script>
+let contracts = [];
+const CACHE_KEY = 'maintenance_contracts_cache_v1';
+const COMPANY_LOGO = 'data:image/jpeg;base64,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';
+let editMode = false;
+let currentFilter = 'all'; 
+let currentSearch = '';
+
+function safeLocalStorageGet(key) { try { return localStorage.getItem(key); } catch(e) { return null; } }
+function safeLocalStorageSet(key, val) { try { localStorage.setItem(key, val); } catch(e) {} }
+
+function load() {
+  try {
+    const raw = safeLocalStorageGet(CACHE_KEY);
+    if (raw) {
+      contracts = JSON.parse(raw);
+      contracts.forEach(c => { if (!c.payments) c.payments = []; });
+      render();
+    }
+  } catch (e) { /* ignore */ }
+}
+
+function save() {
+  const json = JSON.stringify(contracts);
+  safeLocalStorageSet(CACHE_KEY, json);
+  syncDirty = true;
+  safeLocalStorageSet(DIRTY_KEY, '1'); // نحفظ أن فيه تغييرات لم تُرفع بعد، بشكل دائم وليس بالذاكرة المؤقتة فقط
+  if (document.getElementById('detailsOverlay').classList.contains('show') && currentDetailsIdx !== null) {
+     refreshDetailsView();
+  }
+  clearTimeout(pushDebounceTimer);
+  pushDebounceTimer = setTimeout(pushToCloud, 1500); // رفع سريع بدل انتظار الدورة كاملة (10 ثوانٍ)
+}
+
+let toastTimer = null;
+function showToast() {
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1400);
+}
+
+/* =========================================================
+   مزامنة تلقائية مع Google Apps Script — ثنائية الاتجاه، كل 10 ثوانٍ
+   لا توجد أي أزرار أو إعدادات، تعمل تلقائياً في الخلفية على كل الأجهزة.
+   - إذا فيه تغييرات محلية لم تُرفع: تُرفع للسحابة.
+   - إذا مافيه تغييرات محلية: يتحقق الجهاز من السحابة ويحدّث نفسه
+     إذا لقى بيانات أحدث (مثلاً عقد أُضيف من جهاز آخر).
+
+   إصلاح مهم: سابقاً كان "علم" وجود تغييرات لم تُرفع (syncDirty) يعيش
+   بالذاكرة المؤقتة فقط، فيُصفَّر تلقائياً عند كل فتح جديد للتطبيق —
+   حتى لو آخر تغيير فعلياً ما وصل للسحابة (مثلاً لأن المستخدم أغلق
+   التطبيق بسرعة قبل اكتمال الرفع). فكان يصير عند الفتح التالي:
+   يسحب نسخة قديمة/فارغة من السحابة ويمسح فوقها آخر عقد أُضيف — وهذا
+   بالضبط سبب اختفاء العقود. الآن نحفظ هذا العلم في localStorage نفسه
+   (DIRTY_KEY) بحيث يبقى محفوظاً بين الجلسات، ولا نسمح بالسحب من
+   السحابة إطلاقاً إلا بعد التأكد من رفع أي تغييرات معلّقة أولاً.
+========================================================= */
+const SYNC_URL = 'https://script.google.com/macros/s/AKfycbwa7a3LNrpaky8QGoBbYKd74whY0lxEkVoJvBV0B7ukClXS63TV2HFzAHdOcDYjZCQa/exec';
+const DIRTY_KEY = 'maintenance_contracts_dirty_v1';
+
+let syncDirty = safeLocalStorageGet(DIRTY_KEY) === '1'; // يبدأ بقراءة آخر حالة محفوظة فعلياً، لا يبدأ من صفر كل مرة
+let syncInProgress = false;  // تفادي تداخل طلبات المزامنة
+let pushDebounceTimer = null;
+let lastKnownCloudJson = null; // آخر نسخة معروفة من بيانات السحابة (لمقارنة التغيّر)
+
+function pushToCloud(useBeacon) {
+  if (syncInProgress || !syncDirty) return;
+  const json = JSON.stringify(contracts);
+  const payload = JSON.stringify({ contracts: contracts, updatedAt: new Date().toISOString() });
+
+  if (useBeacon && navigator.sendBeacon) {
+    // يُستخدم عند إغلاق/مغادرة الصفحة: يرسل الطلب بشكل موثوق حتى لو أُغلقت الصفحة فوراً بعده
+    try {
+      const blob = new Blob([payload], { type: 'text/plain;charset=UTF-8' });
+      navigator.sendBeacon(SYNC_URL, blob);
+    } catch (e) { /* ignore */ }
+    return; // ما فيه رد نتأكد منه مع sendBeacon، فنترك علم "فيه تغييرات معلّقة" كما هو ليُعاد التأكد لاحقاً
+  }
+
+  syncInProgress = true;
+  fetch(SYNC_URL, { method: 'POST', body: payload })
+    .then(r => r.json())
+    .then(res => {
+      syncInProgress = false;
+      if (res && res.status === 'ok') {
+        syncDirty = false;
+        safeLocalStorageSet(DIRTY_KEY, '0');
+        lastKnownCloudJson = json;
+        showToast();
+      } else {
+        console.warn('فشل رفع البيانات للسحابة:', res);
+      }
+    })
+    .catch(err => { syncInProgress = false; console.warn('تعذّر الاتصال بالسحابة (رفع):', err); });
+}
+
+function pullFromCloud() {
+  if (syncInProgress || syncDirty) return; // لا تستبدل تغييرات محلية لم تُرفع بعد أبداً
+  syncInProgress = true;
+  fetch(SYNC_URL, { method: 'GET' })
+    .then(r => r.json())
+    .then(res => {
+      syncInProgress = false;
+      // تحقق صريح من status وأن contracts فعلاً مصفوفة، حتى لا نثق برد فارغ/خاطئ من السحابة
+      // ونمسح بيانات الجهاز بالغلط (هذا كان جزء من سبب المشكلة)
+      if (!res || res.status !== 'ok' || !Array.isArray(res.contracts)) {
+        if (res && res.status !== 'ok') console.warn('رد غير سليم من السحابة، تم تجاهله:', res);
+        return;
+      }
+      const list = res.contracts;
+      const incoming = JSON.stringify(list);
+      if (incoming === lastKnownCloudJson) return; // لا يوجد جديد
+      lastKnownCloudJson = incoming;
+      if (incoming === JSON.stringify(contracts)) return; // مطابق لما هو معروض أصلاً
+      contracts = list;
+      contracts.forEach(c => { if (!c.payments) c.payments = []; });
+      safeLocalStorageSet(CACHE_KEY, JSON.stringify(contracts));
+      render();
+      showToast();
+    })
+    .catch(err => { syncInProgress = false; console.warn('تعذّر الاتصال بالسحابة (تنزيل):', err); });
+}
+
+function syncTick() {
+  if (syncDirty) pushToCloud();
+  else pullFromCloud();
+}
+
+/* ---------- أزرار المزامنة اليدوية (تظهر بوضع "تعديل العقود") ---------- */
+function setSyncBtnLoading(btn, loading, loadingText) {
+  if (loading) {
+    if (!btn.dataset.originalText) btn.dataset.originalText = btn.textContent;
+    btn.textContent = loadingText;
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+  } else {
+    if (btn.dataset.originalText) btn.textContent = btn.dataset.originalText;
+    btn.disabled = false;
+    btn.style.opacity = '';
+  }
+}
+
+function handleUploadFileSelected(event) {
+  const file = event.target.files[0];
+  event.target.value = ''; // نصفّر القيمة عشان لو اختار نفس الملف مرة ثانية تشتغل onchange برضو
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    let data;
+    try {
+      data = JSON.parse(e.target.result);
+    } catch (err) {
+      alert(currentLang === 'en' ? 'This is not a valid JSON file.' : 'الملف المختار ليس ملف JSON صالح.');
+      return;
+    }
+    const list = Array.isArray(data) ? data : data.contracts;
+    if (!Array.isArray(list)) {
+      alert(currentLang === 'en' ? 'This file does not contain valid contract data.' : 'هذا الملف لا يحتوي على بيانات عقود صالحة.');
+      return;
+    }
+    const confirmMsg = currentLang === 'en'
+      ? 'This will replace ALL contracts in the cloud (and on this device) with the contents of this file. Continue?'
+      : 'سيتم استبدال كل العقود الموجودة في السحابة (وعلى هذا الجهاز) بمحتوى هذا الملف. هل تريد المتابعة؟';
+    if (!confirm(confirmMsg)) return;
+    uploadContractsToCloud(list);
+  };
+  reader.onerror = () => alert(currentLang === 'en' ? 'Could not read the file.' : 'تعذّر قراءة الملف.');
+  reader.readAsText(file, 'UTF-8');
+}
+
+function uploadContractsToCloud(list) {
+  const btn = document.getElementById('uploadCloudBtn');
+  setSyncBtnLoading(btn, true, currentLang === 'en' ? 'Uploading...' : 'جاري الرفع...');
+  list.forEach(c => { if (!c.payments) c.payments = []; if (!c.visits) c.visits = []; });
+  const payload = JSON.stringify({ contracts: list, updatedAt: new Date().toISOString() });
+  fetch(SYNC_URL, { method: 'POST', body: payload })
+    .then(r => r.json())
+    .then(res => {
+      setSyncBtnLoading(btn, false);
+      if (res && res.status === 'ok') {
+        contracts = list;
+        safeLocalStorageSet(CACHE_KEY, JSON.stringify(contracts));
+        lastKnownCloudJson = JSON.stringify(contracts);
+        syncDirty = false;
+        safeLocalStorageSet(DIRTY_KEY, '0');
+        render();
+        showToast();
+      } else {
+        alert(currentLang === 'en' ? 'Upload failed. Please try again.' : 'فشل الرفع للسحابة، حاول مرة أخرى.');
+      }
+    })
+    .catch(() => {
+      setSyncBtnLoading(btn, false);
+      alert(currentLang === 'en' ? 'Could not connect to the cloud.' : 'تعذّر الاتصال بالسحابة، تحقق من الإنترنت وحاول مرة أخرى.');
+    });
+}
+
+function manualDownloadFromCloud() {
+  const btn = document.getElementById('downloadCloudBtn');
+  setSyncBtnLoading(btn, true, currentLang === 'en' ? 'Downloading...' : 'جاري التحميل...');
+  fetch(SYNC_URL, { method: 'GET' })
+    .then(r => r.json())
+    .then(res => {
+      setSyncBtnLoading(btn, false);
+      if (!res || res.status !== 'ok' || !Array.isArray(res.contracts)) {
+        alert(currentLang === 'en' ? 'Download failed. Please try again.' : 'فشل التحميل من السحابة، حاول مرة أخرى.');
+        return;
+      }
+      const payload = JSON.stringify({ contracts: res.contracts, updatedAt: res.updatedAt || new Date().toISOString() }, null, 2);
+      const blob = new Blob([payload], { type: 'application/json;charset=UTF-8' });
+      const url = URL.createObjectURL(blob);
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'نسخة_احتياطية_عقود_الصيانة_' + dateStr + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    })
+    .catch(() => {
+      setSyncBtnLoading(btn, false);
+      alert(currentLang === 'en' ? 'Could not connect to the cloud.' : 'تعذّر الاتصال بالسحابة، تحقق من الإنترنت وحاول مرة أخرى.');
+    });
+}
+
+window.addEventListener('load', syncTick);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') syncTick();
+  else pushToCloud(true); // الصفحة راحت للخلفية (احتمال إغلاق قريب) — نحاول رفع أي تغييرات معلّقة فوراً وبشكل موثوق
+});
+window.addEventListener('pagehide', () => pushToCloud(true));
+setInterval(syncTick, 10000);
+
+function internalId() { return 'k' + Date.now() + Math.random().toString(36).slice(2, 7); }
+
+let currentLang = 'ar';
+let nameAddrTranslations = {};
+try { const rawTr = safeLocalStorageGet('name_addr_translations_v1'); if (rawTr) nameAddrTranslations = JSON.parse(rawTr); } catch (e) {}
+
+const DYN = {
+  ar: {
+    contractsCount: (n) => n + ' عقد', edit: 'تعديل', delete: 'حذف', addPayments: 'إضافة دفعات',
+    paidOf: (paid, total) => paid + ' / ' + total + ' مدفوعة', freeContract: 'عقد مجاني',
+    freqMap: { 12: 'شهرياً', 6: 'كل شهرين', 4: 'كل 3 أشهر', 3: 'كل 4 أشهر', 2: 'نصف سنوي', 1: 'سنوي' }, freqSuffix: ' زيارة/سنة',
+    statusOverdue: 'متأخرة', statusSoon: 'قريبة', statusNotDue: 'مجدولة',
+    visitsOf: (done, total) => done + ' / ' + total + ' تمت', signingLabel: 'توقيع',
+    attachReport: 'إرفاق ملف', remove: 'إزالة', issueReport: 'إصدار تقرير', editPrintReport: 'تعديل التقرير',
+    viewReport: 'تحميل التقرير', reportBtnMain: 'التقرير', notesBtn: 'ملاحظات', doneLabel: 'تمت', notDoneLabel: 'لم تتم',
+    paidLabel: 'مدفوعة', dueLabel: 'مستحقة', totalLabel: 'الإجمالي', paidTotalLabel: 'المدفوع', remainingLabel: 'المتبقي',
+    yearsLabel: 'سنة'
+  },
+  en: {
+    contractsCount: (n) => n + ' contracts', edit: 'Edit', delete: 'Delete', addPayments: 'Add Payments',
+    paidOf: (paid, total) => paid + ' / ' + total + ' paid', freeContract: 'Free Contract',
+    freqMap: { 12: 'Monthly', 6: 'Every 2 months', 4: 'Every 3 months', 3: 'Every 4 months', 2: 'Semi-annual', 1: 'Annual' }, freqSuffix: ' visits/year',
+    statusOverdue: 'Overdue', statusSoon: 'Due Soon', statusNotDue: 'Scheduled',
+    visitsOf: (done, total) => done + ' / ' + total + ' done', signingLabel: 'Signed',
+    attachReport: 'Attach File', remove: 'Remove', issueReport: 'Issue Report', editPrintReport: 'Edit Report',
+    viewReport: 'Download Report', reportBtnMain: 'Report', notesBtn: 'Notes', doneLabel: 'Done', notDoneLabel: 'Not Done',
+    paidLabel: 'Paid', dueLabel: 'Due', totalLabel: 'Total', paidTotalLabel: 'Paid', remainingLabel: 'Remaining',
+    yearsLabel: 'yr'
+  }
+};
+
+function d() { return DYN[currentLang]; }
+function trText(text) { if (currentLang !== 'en' || !text) return text; return nameAddrTranslations[text] || text; }
+
+function fetchTranslation(text) {
+  return fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=ar|en')
+    .then(r => r.json()).then(data => (data && data.responseData && data.responseData.translatedText) ? data.responseData.translatedText : text).catch(() => text);
+}
+
+function ensureTranslated(texts) {
+  const unique = [...new Set(texts.filter(t => t && t.trim() && !nameAddrTranslations[t]))];
+  if (unique.length === 0) return Promise.resolve();
+  return Promise.all(unique.map(t => fetchTranslation(t).then(translated => { nameAddrTranslations[t] = translated; })))
+    .then(() => { safeLocalStorageSet('name_addr_translations_v1', JSON.stringify(nameAddrTranslations)); });
+}
+
+function updateFilterBtnText() {
+  const filterBtn = document.getElementById('filterBtn');
+  if(currentFilter === 'all') filterBtn.textContent = currentLang === 'ar' ? 'الكل ▾' : 'All ▾';
+  else if(currentFilter === 'overdue_pay') filterBtn.textContent = currentLang === 'ar' ? 'الدفعات المتأخرة ▾' : 'Overdue Payments ▾';
+  else if(currentFilter === 'overdue_visit') filterBtn.textContent = currentLang === 'ar' ? 'الزيارات المتأخرة ▾' : 'Overdue Visits ▾';
+}
+
+function applyStaticLang() {
+  document.querySelectorAll('[data-ar]').forEach(el => {
+    const val = currentLang === 'en' ? el.getAttribute('data-en') : el.getAttribute('data-ar');
+    if (val !== null) el.textContent = val;
+  });
+  document.querySelectorAll('[data-ar-ph]').forEach(el => {
+    const val = currentLang === 'en' ? el.getAttribute('data-en-ph') : el.getAttribute('data-ar-ph');
+    if (val !== null) el.placeholder = val;
+  });
+  const btn = document.getElementById('langToggleBtn');
+  if (btn) btn.textContent = currentLang === 'en' ? 'عربي' : 'EN';
+  updateFilterBtnText();
+}
+
+function switchLanguage(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang === 'en' ? 'en' : 'ar';
+  document.documentElement.dir = lang === 'en' ? 'ltr' : 'rtl';
+  applyStaticLang(); 
+  render();
+  safeLocalStorageSet('app_lang', lang);
+  if (lang === 'en') {
+    const texts = [];
+    contracts.forEach(c => { texts.push(c.name); texts.push(c.addr); });
+    ensureTranslated(texts).then(() => { if (currentLang === 'en') render(); });
+  }
+}
+document.getElementById('langToggleBtn').addEventListener('click', () => { switchLanguage(currentLang === 'ar' ? 'en' : 'ar'); });
+
+function freqLabel(freq) { return d().freqMap[freq] || (freq + d().freqSuffix); }
+
+function addMonths(dateStr, months) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const day = d.getDate();
+  d.setMonth(d.getMonth() + months);
+  if (d.getDate() !== day) d.setDate(0);
+  return d.toISOString().slice(0, 10);
+}
+
+function generateVisits(startDate, freqPerYear, durationYears) {
+  const intervalMonths = 12 / freqPerYear;
+  const totalVisits = Math.round(freqPerYear * durationYears);
+  const visits = [];
+  for (let i = 0; i < totalVisits; i++) visits.push({ date: addMonths(startDate, Math.round(intervalMonths * i)), done: false });
+  return visits;
+}
+
+function getTimeStatus(dateStr) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const dt = new Date(dateStr + 'T00:00:00');
+  const diffDays = Math.round((dt - today) / (1000 * 60 * 60 * 24));
+  if (diffDays < 0) return { cls: 'red', label: d().statusOverdue };
+  if (diffDays <= 7) return { cls: 'orange', label: d().statusSoon };
+  return { cls: 'green', label: d().statusNotDue };
+}
+
+function fmtMoney(n) { return Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 3 }); }
+function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+function toggleEditMode() {
+    editMode = !editMode;
+    const mainTableCard = document.getElementById('mainTableCard');
+    const toggleBtn = document.getElementById('toggleEditModeBtn');
+    const downloadBtn = document.getElementById('downloadCloudBtn');
+    const uploadBtn = document.getElementById('uploadCloudBtn');
+    if(editMode) {
+      toggleBtn.classList.add('active-toggle');
+      mainTableCard.classList.add('edit-mode-active');
+      downloadBtn.style.display = 'inline-block';
+      uploadBtn.style.display = 'inline-block';
+    } else {
+      toggleBtn.classList.remove('active-toggle');
+      mainTableCard.classList.remove('edit-mode-active');
+      downloadBtn.style.display = 'none';
+      uploadBtn.style.display = 'none';
+    }
+    render();
+}
+
+function toggleFilterMenu(e) {
+  e.stopPropagation();
+  document.getElementById('filterMenu').classList.toggle('show');
+}
+
+document.addEventListener('click', (e) => { 
+  const wrap = document.querySelector('.filter-dropdown-wrap'); 
+  if (wrap && !wrap.contains(e.target)) {
+      document.getElementById('filterMenu').classList.remove('show'); 
+  }
+});
+
+function setFilter(filterType) {
+  currentFilter = filterType;
+  document.getElementById('filterMenu').classList.remove('show');
+  updateFilterBtnText();
+  render();
+}
+
+// تحويل الأرقام العربية/الفارسية إلى أرقام إنجليزية عادية عشان البحث برقم الهاتف يشتغل بأي نوع أرقام يكتبه المستخدم
+function normalizeDigits(str) {
+  if (!str) return '';
+  const arabicIndic = '٠١٢٣٤٥٦٧٨٩';
+  const persian = '۰۱۲۳۴۵۶۷۸۹';
+  return String(str).replace(/[٠-٩۰-۹]/g, ch => {
+    let idx = arabicIndic.indexOf(ch);
+    if (idx === -1) idx = persian.indexOf(ch);
+    return idx !== -1 ? String(idx) : ch;
+  });
+}
+
+function onSearchInput() {
+  const input = document.getElementById('searchInput');
+  currentSearch = input.value.trim();
+  document.getElementById('searchWrap').classList.toggle('has-value', currentSearch.length > 0);
+  render();
+}
+
+function clearSearch() {
+  currentSearch = '';
+  const input = document.getElementById('searchInput');
+  input.value = '';
+  document.getElementById('searchWrap').classList.remove('has-value');
+  render();
+  input.focus();
+}
+
+function getFilteredContracts() {
+  let list = contracts.map((c, i) => ({...c, originalIndex: i}));
+
+  if (currentFilter === 'overdue_pay') {
+    list = list.filter(c => !c.free && c.payments.some(p => !p.paid && getTimeStatus(p.dueDate).cls === 'red'));
+  } else if (currentFilter === 'overdue_visit') {
+    list = list.filter(c => c.visits.some(v => !v.done && getTimeStatus(v.date).cls === 'red'));
+  }
+
+  if (currentSearch) {
+    const qName = currentSearch.trim().toLowerCase();
+    const qPhone = normalizeDigits(currentSearch).replace(/[^0-9]/g, '');
+    list = list.filter(c => {
+      const nameMatch = (c.name || '').toLowerCase().includes(qName) || (trText(c.name) || '').toLowerCase().includes(qName);
+      const phoneDigits = normalizeDigits(c.phone || '').replace(/[^0-9]/g, '');
+      const phoneMatch = qPhone.length > 0 && phoneDigits.includes(qPhone);
+      return nameMatch || phoneMatch;
+    });
+  }
+
+  return list;
+}
+
+function render() {
+  renderTable();
+  renderCards();
+  document.getElementById('count').textContent = d().contractsCount(getFilteredContracts().length);
+}
+
+function renderTable() {
+  const tbody = document.getElementById('tbody');
+  const emptyState = document.getElementById('emptyStateTable');
+  const filtered = getFilteredContracts();
+  
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    emptyState.style.display = 'block';
+    return;
+  }
+  emptyState.style.display = 'none';
+  tbody.innerHTML = filtered.map((c) => {
+    return `<tr onclick="if(!editMode) openContractDetails(${c.originalIndex})">
+      <td>${escapeHtml(trText(c.name))}</td>
+      <td>${c.date || ''}</td>
+      <td dir="ltr">${escapeHtml(c.phone)}</td>
+      <td>${escapeHtml(trText(c.addr))}</td>
+      <td>${freqLabel(c.freq)}</td>
+      <td class="action-col">
+        <button class="btn-ghost btn-sm" onclick="event.stopPropagation(); openEditModal(${c.originalIndex})">${d().edit}</button>
+        <button class="btn-ghost btn-sm" style="color:#C0392B; border-color:#FCEBEB; background:#FFF5F5;" onclick="event.stopPropagation(); deleteRow(${c.originalIndex})">${d().delete}</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderCards() {
+  const list = document.getElementById('cardsList');
+  const emptyState = document.getElementById('emptyStateCards');
+  const filtered = getFilteredContracts();
+  
+  if (filtered.length === 0) {
+    list.innerHTML = '';
+    emptyState.style.display = 'block';
+    return;
+  }
+  emptyState.style.display = 'none';
+  list.innerHTML = filtered.map((c) => {
+    return `
+    <div class="contract-card" onclick="if(!editMode) openContractDetails(${c.originalIndex})">
+      <div class="cc-top">
+        <div class="cc-name">${escapeHtml(trText(c.name))}</div>
+      </div>
+      <div class="cc-meta">
+        ${currentLang === 'ar' ? 'الهاتف:' : 'Phone:'} <span dir="ltr">${escapeHtml(c.phone)}</span><br>
+        ${currentLang === 'ar' ? 'العنوان:' : 'Address:'} ${escapeHtml(trText(c.addr))}<br>
+        ${c.date} — ${freqLabel(c.freq)}
+      </div>
+      <div class="cc-actions action-col">
+        <button class="btn-ghost btn-sm" onclick="event.stopPropagation(); openEditModal(${c.originalIndex})">${d().edit}</button>
+        <button class="btn-ghost btn-sm" style="color:#C0392B; border-color:#FCEBEB; background:#FFF5F5;" onclick="event.stopPropagation(); deleteRow(${c.originalIndex})">${d().delete}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ============================================== */
+/* DETAILS MODAL LOGIC                            */
+/* ============================================== */
+let currentDetailsIdx = null;
+
+function openContractDetails(idx) {
+  currentDetailsIdx = idx;
+  refreshDetailsView();
+  document.getElementById('detailsOverlay').classList.add('show');
+}
+
+function refreshDetailsView() {
+  if (currentDetailsIdx === null) return;
+  const c = contracts[currentDetailsIdx];
+  document.getElementById('detailsTitle').textContent = escapeHtml(trText(c.name));
+  document.getElementById('detailsSub').innerHTML = `
+    <span style="color:#D6E5F2; font-weight:bold;">${currentLang === 'ar' ? 'الهاتف:' : 'Phone:'}</span> <span dir="ltr">${escapeHtml(c.phone)}</span> &nbsp;&nbsp;|&nbsp;&nbsp; 
+    <span style="color:#D6E5F2; font-weight:bold;">${currentLang === 'ar' ? 'العنوان:' : 'Address:'}</span> ${escapeHtml(trText(c.addr))} <br>
+    <span style="color:#D6E5F2; font-weight:bold;">${currentLang === 'ar' ? 'تاريخ التوقيع:' : 'Date:'}</span> ${c.date} &nbsp;&nbsp;|&nbsp;&nbsp; 
+    <span style="color:#D6E5F2; font-weight:bold;">${currentLang === 'ar' ? 'المعدل:' : 'Freq:'}</span> ${freqLabel(c.freq)}
+  `;
+
+  const doneVisits = c.visits.filter(v => v.done).length;
+  document.getElementById('detVisitsCount').textContent = d().visitsOf(doneVisits, c.visits.length);
+
+  if (c.free) {
+    document.getElementById('detPaysCount').textContent = d().freeContract;
+  } else {
+    const paidCount = c.payments.filter(p => p.paid).length;
+    document.getElementById('detPaysCount').textContent = d().paidOf(paidCount, c.payments.length);
+  }
+
+  renderReadOnlyNotes();
+}
+
+function renderReadOnlyNotes() {
+  const c = contracts[currentDetailsIdx];
+  const box = document.getElementById('readOnlyNotesContainer');
+  const notes = c.contractNotes;
+
+  const noPhotos = (!notes || !notes.photos || notes.photos.length === 0);
+  const noTexts = (!notes || !notes.textNotes || notes.textNotes.length === 0 || (notes.textNotes.length === 1 && notes.textNotes[0].trim() === ''));
+
+  if (noPhotos && noTexts) {
+     box.innerHTML = `<div style="color:#9CA3AF; font-size:13px; text-align:center; padding: 20px;">${currentLang === 'ar' ? 'لا توجد ملاحظات مسجلة.' : 'No notes recorded.'}</div>`;
+     return;
+  }
+
+  let html = '';
+  if (!noPhotos) {
+     html += `<div class="photo-grid" style="margin-bottom: 15px;">`;
+     html += notes.photos.map(p => {
+       if(p.type === 'pdf') {
+         return `<div class="photo-card" style="border: 1px solid #E5E7EB; border-radius: 10px; overflow: hidden; width: 120px;">
+           <div class="pdf-preview" onclick="viewContractPhotoFromDetails('${p.id}')">PDF</div>
+           ${p.title ? `<div style="font-size:11px; text-align:center; padding: 5px; background:#F9FAFB; color:#4B5563; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeHtml(p.title)}">${escapeHtml(p.title)}</div>` : ''}
+         </div>`;
+       } else {
+         return `<div class="photo-card" style="border: 1px solid #E5E7EB; border-radius: 10px; overflow: hidden; width: 120px;">
+           <img src="${p.data}" onclick="viewContractPhotoFromDetails('${p.id}')" style="width: 100%; height: 90px; object-fit: cover; cursor: pointer;">
+           ${p.title ? `<div style="font-size:11px; text-align:center; padding: 5px; background:#F9FAFB; color:#4B5563; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeHtml(p.title)}">${escapeHtml(p.title)}</div>` : ''}
+         </div>`;
+       }
+     }).join('');
+     html += `</div>`;
+  }
+
+  if (!noTexts) {
+     const validNotes = notes.textNotes.filter(n => n.trim() !== '');
+     if (validNotes.length > 0) {
+         html += `<ul style="margin:0; padding:0 20px; font-size:13px; color:#4B5563; line-height:1.8;">`;
+         html += validNotes.map(n => `<li>${escapeHtml(n)}</li>`).join('');
+         html += `</ul>`;
+     }
+  }
+  box.innerHTML = html;
+}
+
+function viewContractPhotoFromDetails(photoId) {
+    contractNotesIdx = currentDetailsIdx; 
+    viewContractPhoto(photoId);
+}
+
+function openVisitsFromDetails() { document.getElementById('detailsOverlay').classList.remove('show'); openVisits(currentDetailsIdx); }
+function openPaymentsFromDetails() { document.getElementById('detailsOverlay').classList.remove('show'); openPayments(currentDetailsIdx); }
+function openNotesFromDetails() { document.getElementById('detailsOverlay').classList.remove('show'); openContractNotes(currentDetailsIdx); }
+function closeDetailsModal() { document.getElementById('detailsOverlay').classList.remove('show'); }
+
+function downloadContractPDF(idx) {
+  const c = contracts[idx];
+  const stamp = new Date().toLocaleDateString('en-GB');
+
+  let html = `<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>بيانات العقد - ${escapeHtml(c.name)}</title><style>
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+    body { font-family: Tahoma, Arial, sans-serif; padding: 20px; font-size: 12px; color: #111; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: right; }
+    th { background-color: #1F4E78 !important; color: #fff !important; width: 20%; }
+    h1, h2 { color: #1F4E78; margin-bottom: 10px; }
+    .header { display: flex; justify-content: space-between; border-bottom: 2px solid #1F4E78; padding-bottom: 10px; margin-bottom: 20px;}
+    .page-break { page-break-before: always; padding-top: 20px; }
+    .attachment-container { margin-bottom: 30px; text-align: center; page-break-inside: avoid; }
+    .attachment-container img { max-width: 100%; max-height: 900px; border: 1px solid #ccc; border-radius: 8px; }
+  </style></head><body>
+    <div class="header">
+      <div style="width:50%;">
+        <h1>بيانات عقد الصيانة</h1>
+        <p>تاريخ استخراج التقرير: ${stamp}</p>
+      </div>
+      <div style="width:50%; text-align:left;">
+        <img src="${COMPANY_LOGO}" style="height:60px; object-fit:contain;" />
+      </div>
+    </div>
+
+    <h2>البيانات الأساسية</h2>
+    <table>
+      <tr><th>اسم العميل</th><td>${escapeHtml(c.name)}</td><th>رقم الهاتف</th><td dir="ltr">${escapeHtml(c.phone)}</td></tr>
+      <tr><th>العنوان</th><td colspan="3">${escapeHtml(c.addr)}</td></tr>
+      <tr><th>تاريخ التوقيع</th><td>${c.date}</td><th>معدل الزيارات</th><td>${freqLabel(c.freq)}</td></tr>
+    </table>
+
+    <h2>سجل الزيارات</h2>
+    <table>
+      <tr><th>رقم الزيارة</th><th>التاريخ</th><th>الحالة</th><th>التقرير</th></tr>`;
+      
+  if(c.visits && c.visits.length > 0) {
+      c.visits.forEach((v, i) => {
+          html += `<tr><td>الزيارة ${i+1}</td><td>${v.date}</td><td>${v.done ? 'تمت' : 'لم تتم'}</td><td>${v.maintenanceReport ? 'يوجد تقرير' : '-'}</td></tr>`;
+      });
+  } else {
+      html += `<tr><td colspan="4" style="text-align:center;">لا توجد زيارات مسجلة</td></tr>`;
+  }
+  html += `</table>
+
+    <h2>سجل الدفعات</h2>
+    <table>
+      <tr><th>رقم الدفعة</th><th>تاريخ الاستحقاق</th><th>المبلغ</th><th>الحالة</th><th>طريقة الدفع</th></tr>`;
+  
+  if(!c.free && c.payments && c.payments.length > 0) {
+      c.payments.forEach((p, i) => {
+          let method = '-';
+          if(p.method === 'cash') method = 'نقداً';
+          if(p.method === 'check') method = 'شيك';
+          html += `<tr><td>الدفعة ${i+1}</td><td>${p.dueDate}</td><td>${p.amount}</td><td>${p.paid ? 'مدفوعة' : 'غير مدفوعة'}</td><td>${method}</td></tr>`;
+      });
+  } else if (c.free) {
+      html += `<tr><td colspan="5" style="text-align:center;">العقد مجاني</td></tr>`;
+  } else {
+      html += `<tr><td colspan="5" style="text-align:center;">لا توجد دفعات مسجلة</td></tr>`;
+  }
+  html += `</table>`;
+
+  if (c.contractNotes) {
+    const textNotes = (c.contractNotes.textNotes || []).filter(n => n.trim() !== '');
+    const photos = (c.contractNotes.photos || []).filter(p => p.type !== 'pdf');
+    
+    if (textNotes.length > 0 || photos.length > 0) {
+      html += `<div class="page-break"></div>`;
+      html += `<h2>الملاحظات والمرفقات</h2>`;
+      
+      if (textNotes.length > 0) {
+        html += `<ul style="font-size: 14px; line-height: 1.8; margin-bottom: 20px; padding-right: 20px;">`;
+        textNotes.forEach(n => {
+          html += `<li>${escapeHtml(n)}</li>`;
+        });
+        html += `</ul>`;
+      }
+      
+      if (photos.length > 0) {
+        photos.forEach((p, idx) => {
+          html += `<div class="attachment-container">`;
+          html += `<h3 style="margin-bottom: 10px; color: #1F4E78; text-align: right;">مرفق ${idx + 1}${p.title ? ` - ${escapeHtml(p.title)}` : ''}</h3>`;
+          html += `<img src="${p.data}" />`;
+          html += `</div>`;
+        });
+      }
+    }
+  }
+
+  html += `<script>window.onload = function() { setTimeout(() => { window.focus(); window.print(); }, 800); }<\/script></body></html>`;
+
+  const w = window.open('', '_blank'); 
+  w.document.open(); 
+  w.document.write(html); 
+  w.document.close();
+}
+
+/* ============================================== */
+
+/* ---------- Visits modal ---------- */
+function openVisits(idx) {
+  openVisitsIdx = idx;
+  const c = contracts[idx];
+  document.getElementById('visitsTitle').textContent = (currentLang === 'ar' ? 'زيارات عقد: ' : 'Visits: ') + c.name;
+  document.getElementById('visitsSub').textContent = freqLabel(c.freq) + ' لمدة ' + c.duration + ' ' + d().yearsLabel;
+  renderVisitsList();
+  document.getElementById('visitsOverlay').classList.add('show');
+}
+
+function renderVisitsList() {
+  const c = contracts[openVisitsIdx];
+  const list = document.getElementById('visitsList');
+  list.innerHTML = c.visits.map((v, i) => {
+    const st = v.done ? { cls: 'green', label: d().doneLabel } : getTimeStatus(v.date);
+    const attachChip = v.report
+      ? `<button class="attach-chip" onclick="viewVisitReport(${i})">مرفق: ${escapeHtml(v.report.name)}</button>
+         <button class="attach-remove" onclick="removeVisitReport(${i})">${d().remove}</button>`
+      : '';
+    const reportChip = v.maintenanceReport 
+      ? `<button class="attach-chip" onclick="generateReportPDF(contracts[openVisitsIdx], contracts[openVisitsIdx].visits[${i}].maintenanceReport)" style="background:#EAF3DE; color:#3B6D11;">${d().viewReport}</button>`
+      : '';
+
+    return `
+    <li class="row-${st.cls}" style="flex-direction:column; align-items:stretch;">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+        <div class="visit-left">
+          <input type="checkbox" ${v.done ? 'checked' : ''} onchange="toggleDone(${i})">
+          <span class="visit-num">#${i + 1}</span>
+          <input type="date" class="visit-date-input" value="${v.date}" onchange="editVisitDate(${i}, this.value)">
+        </div>
+        <span class="status-badge status-${st.cls}">${st.label}</span>
+      </div>
+      <div class="visit-attach-row">
+        <div class="visit-dropdown-wrap">
+          <button class="report-btn" onclick="toggleVisitMenu(event, ${i})">${d().reportBtnMain}</button>
+          <div class="visit-menu" id="visitMenu_${i}">
+            <button class="filter-menu-item" onclick="closeAllVisitMenus(); openReportModal(${i})">${v.maintenanceReport ? d().editPrintReport : d().issueReport}</button>
+            <button class="filter-menu-item" onclick="triggerAttachFromMenu(${i})">${d().attachReport}</button>
+          </div>
+        </div>
+        ${reportChip}
+        ${attachChip}
+      </div>
+    </li>
+  `;
+  }).join('');
+}
+
+function toggleVisitMenu(e, i) { e.stopPropagation(); const menu = document.getElementById('visitMenu_' + i); const isOpen = menu.classList.contains('show'); closeAllVisitMenus(); if (!isOpen) menu.classList.add('show'); }
+function closeAllVisitMenus() { document.querySelectorAll('.visit-menu').forEach(m => m.classList.remove('show')); }
+
+function triggerAttachFromMenu(i) { closeAllVisitMenus(); const input = document.getElementById('visitAttachInput'); input.onchange = () => attachVisitReport(i, input); input.click(); }
+
+function attachVisitReport(i, inputEl) {
+  const file = inputEl.files[0]; if (!file) return;
+  if (file.size > 8 * 1024 * 1024) { alert('حجم الملف كبير جداً'); inputEl.value = ''; return; }
+  if (file.type === 'application/pdf') {
+    const reader = new FileReader();
+    reader.onload = (e) => { contracts[openVisitsIdx].visits[i].report = { name: file.name, type: 'application/pdf', data: e.target.result }; save(); renderVisitsList(); render(); };
+    reader.readAsDataURL(file);
+  } else if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > 800) { height = Math.round(height * 800 / width); width = 800; }
+          const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height); 
+          contracts[openVisitsIdx].visits[i].report = { name: file.name, type: 'image/jpeg', data: canvas.toDataURL('image/jpeg', 0.7) }; 
+          save(); renderVisitsList(); render();
+        }; 
+        img.src = e.target.result;
+    }; reader.readAsDataURL(file);
+  }
+  inputEl.value = '';
+}
+
+function removeVisitReport(i) { if (!confirm('إزالة المرفق؟')) return; delete contracts[openVisitsIdx].visits[i].report; save(); renderVisitsList(); render(); }
+
+function viewVisitReport(i) {
+  const r = contracts[openVisitsIdx].visits[i].report; if (!r) return; const w = window.open('', '_blank');
+  if (r.type === 'application/pdf') w.document.write(`<title>${escapeHtml(r.name)}</title><iframe src="${r.data}" style="position:fixed;inset:0;width:100%;height:100%;border:none;"></iframe>`);
+  else w.document.write(`<title>${escapeHtml(r.name)}</title><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${r.data}" style="max-width:100%;max-height:100vh;"></body>`);
+}
+
+function toggleDone(i) { contracts[openVisitsIdx].visits[i].done = !contracts[openVisitsIdx].visits[i].done; save(); renderVisitsList(); render(); }
+function editVisitDate(i, newDate) { contracts[openVisitsIdx].visits[i].date = newDate; save(); render(); }
+
+document.getElementById('closeVisitsBtn').addEventListener('click', () => { document.getElementById('visitsOverlay').classList.remove('show'); });
+
+/* ---------- Maintenance report wizard ---------- */
+const REPORT_SECTIONS = [
+  { id: 'A', titleEn: 'FIRE FIGHTING SYSTEM', titleAr: 'نظام مكافحة الحريق', items: [
+    { en: 'Check Main Fire Pump', ar: 'فحص مضخة الحريق الرئيسية' },
+    { en: 'Check Jockey Pump', ar: 'فحص مضخة الحريق الكهربائية مساعدة' },
+    { en: 'Check Diesel Pump', ar: 'فحص مضخة الحريق الديزل' },
+    { en: 'Check Pump Room Values', ar: 'فحص محابس غرفة المضخات' },
+    { en: 'Check Pump Electrical Control Panel', ar: 'فحص لوحة التحكم بالمضخات' },
+    { en: 'Check Water Flow Meter', ar: 'فحص مقياس التدفق' },
+    { en: 'Check Water Flow Switch', ar: 'فحص مفتاح التدفق' },
+    { en: 'Check Hose Reel', ar: 'فحص خراطيم المياه المطاطية' },
+    { en: 'Check Sprinkler System', ar: 'فحص شبكة المرشات المياه التلقائية' },
+    { en: 'Check Water Tank Level', ar: 'فحص مستوى مياه خزانات مكافحة الحريق' },
+    { en: 'Check Halon System or Fm 200 or Foam Sys.', ar: 'فحص نظام الهالون او البدائل' },
+    { en: 'Check Fire Extinguishers', ar: 'فحص طفايات الحريق اليدوية' },
+    { en: 'Check Fire Brigade Inlet', ar: 'فحص نقطة دفع رجال الاطفاء' },
+    { en: 'Check Dry or Wet Landing Valves', ar: 'فحص فوهات الحريق الجافة او الجارية' }
+  ]},
+  { id: 'B', titleEn: 'FIRE ALARM SYSTEM', titleAr: 'نظام انذار الحريق', items: [
+    { en: 'Check Fire Alarm Control Panel', ar: 'فحص لوحة انذار الحريق' },
+    { en: 'Check Smoke Detectors', ar: 'فحص جميع كواشف الدخان' },
+    { en: 'Check Heat Detectors', ar: 'فحص جميع كواشف الحرارة' },
+    { en: 'Check Break Glass Units', ar: 'فحص كبسات الانذار اليدوية' },
+    { en: 'Check Alarm Bells', ar: 'فحص أجراس الانذار الداخلية والخارجية' },
+    { en: 'Check Batteries For Facp', ar: 'فحص بطاريات لوحة الانذار الرئيسية' },
+    { en: 'Check Halon or Fm 200 Control Panel', ar: 'فحص لوحة الانذار الهالون او البدائل' },
+    { en: 'Check the Elevators Connection with the Fire Alarm', ar: 'فحص ربط المصاعد بنظام الإنذار' },
+    { en: 'Check the Doors Connection with the Fire Alarm', ar: 'فحص ربط الأبواب بنظام الانذار' }
+  ]},
+  { id: 'C', titleEn: 'VENTILATION SYSTEM', titleAr: 'نظام التهوية', items: [
+    { en: 'Check Smoke Fans', ar: 'فحص مراوح سحب الدخان' },
+    { en: 'Check Fresh Air Fans', ar: 'فحص مراوح الهواء النقي' },
+    { en: 'Check the Fans Connection with the Fire Alarm', ar: 'فحص ربط المراوح بنظام الانذار' }
+  ]}
+];
+
+const STATUS_LABELS = { works: 'يعمل', not_working: 'لا يعمل', not_present: 'لا يوجد' };
+const STATUS_LABELS_BY_LANG = { ar: { works: 'يعمل', not_working: 'لا يعمل', not_present: 'لا يوجد' }, en: { works: 'Working', not_working: 'Not Working', not_present: 'None' } };
+
+let reportVisitIdx = null; let reportState = { items: {}, notes: [''], photos: [] }; let reportLang = 'ar'; let sigPads = {};
+
+function setReportLang(lang) { reportLang = lang; document.getElementById('rpLangAr').classList.toggle('active', lang === 'ar'); document.getElementById('rpLangEn').classList.toggle('active', lang === 'en'); renderReportChecklist(); renderReportPhotoGrid(); }
+
+function openReportModal(visitIdx) {
+  reportVisitIdx = visitIdx; const c = contracts[openVisitsIdx]; const v = c.visits[visitIdx]; const existing = v.maintenanceReport;
+  reportState = existing ? { items: Object.assign({}, existing.items), notes: existing.notes && existing.notes.length ? existing.notes.slice() : [''], photos: existing.photos ? existing.photos.map(p => Object.assign({}, p)) : [] } : { items: {}, notes: [''], photos: [] };
+  reportLang = 'ar'; document.getElementById('rpLangAr').classList.add('active'); document.getElementById('rpLangEn').classList.remove('active');
+  document.getElementById('reportSub').textContent = c.name + ' — ' + c.addr;
+  document.getElementById('rp_date').value = existing ? existing.date : v.date;
+  document.getElementById('rp_inspector_name').value = existing ? existing.inspectorName || '' : '';
+  document.getElementById('rp_customer_name').value = existing ? existing.customerName || '' : '';
+  renderReportChecklist(); renderReportNotes(); renderReportPhotoGrid(); document.getElementById('reportOverlay').classList.add('show');
+  setTimeout(() => { initSignaturePad('sigInspector', existing && existing.inspectorSig); initSignaturePad('sigCustomer', existing && existing.customerSig); }, 50);
+}
+
+function renderReportChecklist() {
+  const box = document.getElementById('reportChecklist'); const sl = STATUS_LABELS_BY_LANG[reportLang]; let html = '';
+  REPORT_SECTIONS.forEach(section => {
+    html += `<div class="report-section-title">${reportLang === 'ar' ? section.titleAr : section.titleEn}</div>`;
+    section.items.forEach((item, idx) => {
+      const key = section.id + (idx + 1); const current = reportState.items[key];
+      html += `<div class="report-item-row"><div class="report-item-label">${reportLang === 'ar' ? item.ar : item.en}</div>
+        <div class="report-status-group">
+          <button type="button" class="status-opt ${current === 'works' ? 'sel-works' : ''}" onclick="setItemStatus('${key}','works')">${sl.works}</button>
+          <button type="button" class="status-opt ${current === 'not_working' ? 'sel-not_working' : ''}" onclick="setItemStatus('${key}','not_working')">${sl.not_working}</button>
+          <button type="button" class="status-opt ${current === 'not_present' ? 'sel-not_present' : ''}" onclick="setItemStatus('${key}','not_present')">${sl.not_present}</button>
+        </div></div>`;
+    });
+  }); box.innerHTML = html;
+}
+
+function setItemStatus(key, status) { reportState.items[key] = reportState.items[key] === status ? undefined : status; renderReportChecklist(); }
+function renderReportNotes() {
+  document.getElementById('reportNotes').innerHTML = reportState.notes.map((note, i) => `
+    <div class="report-notes-row"><input type="text" value="${escapeHtml(note)}" onchange="editNote(${i}, this.value)" placeholder="ملاحظة ${i + 1}">
+    ${reportState.notes.length > 1 ? `<button class="note-remove" type="button" onclick="removeNote(${i})">×</button>` : ''}</div>`).join('');
+}
+function editNote(i, val) { reportState.notes[i] = val; }
+function removeNote(i) { reportState.notes.splice(i, 1); renderReportNotes(); }
+document.getElementById('addNoteBtn').addEventListener('click', () => { reportState.notes.push(''); renderReportNotes(); });
+
+/* ---------- Report photos (e.g. "المضخة" مع عنوانها) ---------- */
+function renderReportPhotoGrid() {
+  const grid = document.getElementById('reportPhotoGrid');
+  const titlePh = reportLang === 'ar' ? 'أضف عنوان' : 'Add title';
+  const addLabel = reportLang === 'ar' ? 'إضافة صورة' : 'Add Photo';
+  grid.innerHTML = reportState.photos.map(p => `
+    <div class="photo-card">
+      <img src="${p.data}" onclick="viewReportPhoto('${p.id}')">
+      <input type="text" class="photo-title-input" value="${escapeHtml(p.title || '')}" placeholder="${titlePh}" onchange="editReportPhotoTitle('${p.id}', this.value)">
+      <button class="photo-remove" onclick="removeReportPhoto('${p.id}')">${d().remove}</button>
+    </div>`).join('') +
+    `<label class="add-photo-card"><span style="font-size:22px;">+</span><span>${addLabel}</span><input type="file" accept="image/*" capture="environment" style="display:none" onchange="addReportPhoto(this)"></label>`;
+}
+
+function addReportPhoto(inputEl) {
+  const file = inputEl.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > 900) { height = Math.round(height * 900 / width); width = 900; }
+      const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      reportState.photos.push({ id: internalId(), title: '', data: canvas.toDataURL('image/jpeg', 0.75) });
+      renderReportPhotoGrid();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  inputEl.value = '';
+}
+
+function editReportPhotoTitle(id, title) { const p = reportState.photos.find(x => x.id === id); if (p) p.title = title; }
+function removeReportPhoto(id) { if (!confirm(reportLang === 'ar' ? 'إزالة الصورة؟' : 'Remove photo?')) return; reportState.photos = reportState.photos.filter(p => p.id !== id); renderReportPhotoGrid(); }
+function viewReportPhoto(id) {
+  const p = reportState.photos.find(x => x.id === id); if (!p) return;
+  const w = window.open('', '_blank');
+  w.document.write(`<title>${escapeHtml(p.title || 'photo')}</title><body style="margin:0;background:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;"><img src="${p.data}" style="max-width:100%;max-height:90vh;">${p.title ? `<div style="color:#fff;font-family:Arial;margin-top:10px;font-size:14px;">${escapeHtml(p.title)}</div>` : ''}</body>`);
+}
+
+function initSignaturePad(canvasId, existingDataUrl) {
+  const canvas = document.getElementById(canvasId); const rect = canvas.getBoundingClientRect(); canvas.width = rect.width * 2; canvas.height = rect.height * 2;
+  const ctx = canvas.getContext('2d'); ctx.scale(2, 2); ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = '#111827'; ctx.clearRect(0, 0, canvas.width, canvas.height);
+  let drawing = false;
+  function pos(e) { const r = canvas.getBoundingClientRect(); const p = e.touches ? e.touches[0] : e; return { x: p.clientX - r.left, y: p.clientY - r.top }; }
+  function start(e) { drawing = true; const p = pos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); e.preventDefault(); }
+  function move(e) { if (!drawing) return; const p = pos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); }
+  function end() { drawing = false; }
+  canvas.onmousedown = start; canvas.onmousemove = move; canvas.onmouseup = end; canvas.onmouseleave = end; canvas.ontouchstart = start; canvas.ontouchmove = move; canvas.ontouchend = end;
+  sigPads[canvasId] = canvas;
+  if (existingDataUrl) { const img = new Image(); img.onload = () => ctx.drawImage(img, 0, 0, canvas.width / 2, canvas.height / 2); img.src = existingDataUrl; }
+}
+
+function clearSignature(canvasId) { const canvas = sigPads[canvasId]; if (!canvas) return; canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
+function getSignatureDataUrl(canvasId) { const canvas = sigPads[canvasId]; return canvas ? canvas.toDataURL('image/png') : ''; }
+function closeReportModal() { document.getElementById('reportOverlay').classList.remove('show'); }
+document.getElementById('reportCancelBtn').addEventListener('click', closeReportModal);
+
+function saveAndPrintReport() {
+  const c = contracts[openVisitsIdx]; const date = document.getElementById('rp_date').value; if (!date) { alert('أدخل تاريخ التقرير'); return; }
+  const reportData = { date, items: Object.assign({}, reportState.items), notes: reportState.notes.filter(n => n && n.trim()), photos: reportState.photos.slice(), inspectorName: document.getElementById('rp_inspector_name').value.trim(), inspectorSig: getSignatureDataUrl('sigInspector'), customerName: document.getElementById('rp_customer_name').value.trim(), customerSig: getSignatureDataUrl('sigCustomer') };
+  c.visits[reportVisitIdx].maintenanceReport = reportData; 
+  save(); 
+  renderVisitsList(); 
+  render(); 
+  closeReportModal();
+
+  // توليد وتحميل التقرير كملف PDF
+  generateReportPDF(c, reportData);
+}
+
+document.getElementById('reportSaveBtn').addEventListener('click', saveAndPrintReport);
+
+async function generateReportPDF(contract, r) {
+  if(!r) return;
+  // مهم لآيفون: نفتح النافذة فوراً داخل ضغطة المستخدم، قبل أي await (طلب الترجمة)، وإلا يحجبها سفاري
+  const w = window.open('', '_blank');
+  if (!w) { alert('المتصفح منع فتح نافذة التقرير. اسمح بالنوافذ المنبثقة لهذا الموقع ثم أعد المحاولة.'); return; }
+  w.document.write('<!DOCTYPE html><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>تقرير</title><body style="font-family:Arial,sans-serif;text-align:center;padding:60px 20px;direction:rtl;color:#1F4E78">جاري تجهيز التقرير...</body>');
+  await ensureTranslated([contract.name, contract.addr]);
+  const nameEn = nameAddrTranslations[contract.name] || contract.name; 
+  const addrEn = nameAddrTranslations[contract.addr] || contract.addr;
+  const STATUS_COLOR = { works: '#C9E8B0', not_working: '#F5B8B8', not_present: '#DADEE3' };
+  
+  let checklistHtml = '';
+  REPORT_SECTIONS.forEach(section => {
+    checklistHtml += `
+      <tr>
+        <td colspan="5" style="background-color: #EAF1F8 !important; color: #1F4E78 !important; font-weight: bold; font-size: 11px; padding: 3px 5px; border: 1px solid #C9D4DE; text-align: right;">
+          <table style="width: 100%; border-collapse: collapse; margin: 0; background: transparent !important;">
+            <tr>
+              <td style="border: none; padding: 0; width: 50%; text-align: center; color: #1F4E78; font-weight: bold; font-size: 11px;">${section.titleAr}</td>
+              <td style="border: none; padding: 0; width: 50%; text-align: center; color: #555; font-size: 10px; direction: ltr; font-weight: bold;">${section.titleEn}</td>
+            </tr>
+          </table>
+        </td>
+      </tr>`;
+    
+    section.items.forEach((item, idx) => {
+      const status = r.items[section.id + (idx + 1)];
+      checklistHtml += `
+        <tr>
+          <td style="border: 1px solid #C9D4DE; padding: 2.5px 4px; text-align: center; width: 26px; font-weight: bold; font-size: 10px;">${idx + 1}</td>
+          <td style="border: 1px solid #C9D4DE; padding: 2.5px 4px; text-align: right; font-size: 10px; word-spacing: 2px;">${item.ar}</td>
+          <td style="border: 1px solid #C9D4DE; padding: 2.5px 4px; text-align: center; width: 62px; font-weight: bold; font-size: 10px; background-color: ${status ? STATUS_COLOR[status] : 'transparent'} !important;">${status ? STATUS_LABELS[status] : ''}</td>
+          <td style="border: 1px solid #C9D4DE; padding: 2.5px 4px; text-align: left; font-size: 10px; direction: ltr; white-space: nowrap; word-spacing: 1px;">${item.en}</td>
+          <td style="border: 1px solid #C9D4DE; padding: 2.5px 4px; text-align: center; width: 26px; font-weight: bold; font-size: 10px;">${idx + 1}</td>
+        </tr>`;
+    });
+  });
+  
+  const notes = r.notes || [];
+  let notesContainerHtml = '';
+  if (notes.length > 0) {
+    const isMultiColumn = notes.length > 6;
+    const gridStyle = isMultiColumn ? 'display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px;' : 'display: block;';
+    const notesItemsHtml = notes.map((note) => `<div style="padding: 1.5px 0; font-size: 10.5px; line-height: 1.3; word-spacing: 1px;">• ${escapeHtml(note)}</div>`).join('');
+    notesContainerHtml = `
+      <div style="margin-top: 5px;">
+        <div style="font-weight:bold; font-size:11px; color:#8A6D00; margin-bottom:2px;">ملاحظات — NOTICE</div>
+        <div style="background-color:#FFFBEA !important; border:1px solid #F0E4B0; border-radius:3px; padding:5px 8px; ${gridStyle}">
+          ${notesItemsHtml}
+        </div>
+      </div>`;
+  }
+  
+  const signaturesHtml = `
+  <table style="width: 100%; border-collapse: collapse; margin-top: 8px; border-top: 1.5px solid #E5E7EB;">
+      <tr>
+        <td style="border: none; width: 48%; text-align: center; vertical-align: top; padding: 4px;">
+          <div style="color: #1F4E78; font-weight: bold; font-size: 10.5px; margin-bottom: 2px;">Signature of Inspector</div>
+          <div style="color: #1F4E78; font-weight: bold; font-size: 10.5px; margin-bottom: 3px;">توقيع الفاحص</div>
+          <div style="font-size: 10px; margin-bottom: 3px;">${escapeHtml(r.inspectorName)}</div>
+          <div style="border-bottom: 1px solid #333; height: 32px; display: flex; align-items: center; justify-content: center; margin-bottom: 3px;">
+            ${r.inspectorSig ? `<img src="${r.inspectorSig}" style="max-height: 30px; max-width: 120px; object-fit: contain;" />` : ''}
+          </div>
+          <div style="font-size: 9px; color: #555;">Signature</div>
+        </td>
+        <td style="border: none; width: 4%; padding: 0;"></td>
+        <td style="border: none; width: 48%; text-align: center; vertical-align: top; padding: 4px;">
+          <div style="color: #1F4E78; font-weight: bold; font-size: 10.5px; margin-bottom: 2px;">Signature of Customer</div>
+          <div style="color: #1F4E78; font-weight: bold; font-size: 10.5px; margin-bottom: 3px;">توقيع العميل</div>
+          <div style="font-size: 10px; margin-bottom: 3px;">${escapeHtml(r.customerName)}</div>
+          <div style="border-bottom: 1px solid #333; height: 32px; display: flex; align-items: center; justify-content: center; margin-bottom: 3px;">
+            ${r.customerSig ? `<img src="${r.customerSig}" style="max-height: 30px; max-width: 120px; object-fit: contain;" />` : ''}
+          </div>
+          <div style="font-size: 9px; color: #555;">Signature</div>
+        </td>
+      </tr>
+    </table>`;
+
+  // ترويسة الشركة (الاسم + العنوان + الهاتف + الشعار)
+  function buildHeaderHtml() {
+    return `
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px; border-bottom: 1.5px solid #1F4E78; padding-bottom: 6px;">
+        <tr>
+          <td style="border: none; padding: 0; text-align: right; vertical-align: middle; font-size: 10.5px; line-height: 1.5; word-spacing: 2px; color: #1F2937; width: 38%;">
+              <b style="font-size: 12px; color: #1F4E78;">شركة بريتيش يونايتد للمقاولات العامة للمباني</b><br>
+              حولي، شارع تونس، مجمع الرحاب، الدور العاشر، مكتب ١٠٠٢<br>
+              تلفون: 55459525 - 50653353 - 67770393 - 67770369
+          </td>
+          <td style="border: none; padding: 0; text-align: center; vertical-align: middle; width: 24%;">
+              <img src="${COMPANY_LOGO}" style="height: 62px; object-fit: contain;" />
+          </td>
+          <td style="border: none; padding: 0; text-align: left; vertical-align: middle; font-size: 10.5px; line-height: 1.4; color: #1F2937; direction: ltr; width: 38%;">
+              <b style="font-size: 12px; color: #1F4E78;">British United General Building Cont. Co.</b><br>
+              Hawally, Tunis St., Al-Rehab Complex, 10th Floor, Office 1002<br>
+              Tel.: 55459525 - 50653353 - 67770393 - 67770369
+          </td>
+        </tr>
+      </table>`;
+  }
+
+  const page1BodyHtml = `
+      <div style="text-align:center; margin-bottom:4px;">
+         <h3 style="margin:0; color:#1F4E78; font-size:14px;">تقرير صيانة دورية</h3>
+      </div>
+      
+      <div style="display:flex; justify-content:space-between; font-size:10.5px; font-weight:bold; margin-bottom:4px; background-color:#EAF1F8 !important; padding:3px 6px; border-radius:2px; color:#1F4E78; direction: ltr;">
+          <span>Routine Maintenance</span><span>تقرير الصيانة الدوري</span>
+      </div>
+      
+      <div style="display:flex; justify-content:space-between; font-size:10.5px; margin:2px 0; direction:ltr;">
+        <div style="width:48%; text-align:left;"><b>Date:</b> ${r.date}</div>
+        <div style="width:48%; text-align:right; direction:rtl;"><b>التاريخ:</b> <bdi style="unicode-bidi:isolate; direction:ltr;">${r.date}</bdi></div>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-size:10.5px; margin:2px 0; direction:ltr;">
+        <div style="width:48%; text-align:left;"><b>Area:</b> ${escapeHtml(addrEn)}</div>
+        <div style="width:48%; text-align:right; direction:rtl; word-spacing:2px;"><b>المنطقة:</b> ${escapeHtml(contract.addr)}</div>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-size:10.5px; margin:2px 0; direction:ltr;">
+        <div style="width:48%; text-align:left;"><b>Customer:</b> ${escapeHtml(nameEn)}</div>
+        <div style="width:48%; text-align:right; direction:rtl; word-spacing:2px;"><b>اسم العميل:</b> ${escapeHtml(contract.name)}</div>
+      </div>
+      
+      <table style="width:100%; border-collapse:collapse; margin-top:3px;">
+          <thead>
+              <tr>
+                  <th style="border:1px solid #C9D4DE; padding:3px; background-color:#1F4E78 !important; color:#fff !important; width:26px; text-align:center; font-size:10.5px;">م</th>
+                  <th style="border:1px solid #C9D4DE; padding:3px; background-color:#1F4E78 !important; color:#fff !important; width:40%; text-align: center; font-size:10.5px;">بيان الأعمال</th>
+                  <th style="border:1px solid #C9D4DE; padding:3px; background-color:#1F4E78 !important; color:#fff !important; width:62px; text-align:center; font-size:10.5px;">الحالة</th>
+                  <th style="border:1px solid #C9D4DE; padding:3px; background-color:#1F4E78 !important; color:#fff !important; width:40%; text-align: center; font-size:10.5px;">DESCRIPTION</th>
+                  <th style="border:1px solid #C9D4DE; padding:3px; background-color:#1F4E78 !important; color:#fff !important; width:26px; text-align:center; font-size:10.5px;">No.</th>
+              </tr>
+          </thead>
+          <tbody>
+              ${checklistHtml}
+          </tbody>
+      </table>
+      
+      ${notesContainerHtml}`;
+
+  // ===== تجميع التقرير على صفحات A4 ثابتة المقاس =====
+  // بدل الاعتماد على تكرار thead/tfoot (سفاري آيفون لا يطبّقه كما يفعل كروم)، كل صفحة هنا
+  // عنصر مستقل بمقاس A4: ترويسة بالأعلى، محتوى بالوسط، توقيعات مثبتة بالأسفل بـ flexbox.
+  // الصفحة الأولى (الفحص + الملاحظات) تُصغَّر تلقائياً بالسكربت لتبقى صفحة واحدة دائماً.
+  const photos = r.photos || [];
+  const PHOTOS_PER_PAGE = 4;
+
+  const pageHtml = (inner, isFirst) => `
+  <section class="page">
+    <div class="hdr">${buildHeaderHtml()}</div>
+    <div class="body"${isFirst ? ' id="fitBody"' : ''}>${isFirst ? '<div id="fitContent">' + inner + '</div>' : inner}</div>
+    <div class="ftr">${signaturesHtml}</div>
+  </section>`;
+
+  let pagesHtml = pageHtml(page1BodyHtml, true);
+  for (let i = 0; i < photos.length; i += PHOTOS_PER_PAGE) {
+    const chunk = photos.slice(i, i + PHOTOS_PER_PAGE);
+    const cells = chunk.map(p => `
+      <div class="ph-cell">
+        ${p.title && p.title.trim() ? `<div class="ph-cap">${escapeHtml(p.title)}</div>` : ''}
+        <div class="ph-img"><img src="${p.data}" alt=""></div>
+      </div>`).join('');
+    pagesHtml += pageHtml(`
+      <div class="ph-title">صور مرفقة — Attached Photos</div>
+      <div class="ph-grid">${cells}</div>`, false);
+  }
+
+  const fullHtml = `<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=794">
+<title>تقرير_صيانة_${escapeHtml(contract.name)}_${r.date}</title>
+<style>
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #e5e7eb; }
+  body { font-family: Arial, Tahoma, 'Geeza Pro', sans-serif; color: #111; direction: rtl; }
+  @page { size: A4; margin: 0; }
+  .page { width: 210mm; height: 296mm; padding: 8mm; margin: 0 auto 10px; background: #fff; display: flex; flex-direction: column; overflow: hidden; break-after: page; page-break-after: always; }
+  .page:last-of-type { break-after: auto; page-break-after: auto; }
+  .hdr { flex: none; }
+  .body { flex: 1 1 auto; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+  .ftr { flex: none; margin-top: auto; padding-top: 6px; }
+  #fitContent { flex: none; }
+  .ph-title { flex: none; color: #1F4E78; font-size: 14px; font-weight: bold; border-bottom: 1.5px solid #1F4E78; padding-bottom: 5px; margin-bottom: 8px; }
+  .ph-grid { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 6mm; }
+  .ph-cell { display: flex; flex-direction: column; min-width: 0; min-height: 0; text-align: center; }
+  .ph-cap { flex: none; font-weight: bold; font-size: 12px; color: #1F4E78; margin-bottom: 4px; }
+  .ph-img { flex: 1 1 auto; min-height: 0; position: relative; }
+  .ph-img img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; border: 1px solid #C9D4DE; border-radius: 6px; }
+  @media print { html, body { background: #fff; } .page { margin: 0; } }
+</style>
+</head>
+<body>
+${pagesHtml}
+<script>
+  (function () {
+    // تصغير الصفحة الأولى لتبقى صفحة واحدة: نقيس الارتفاع الفعلي ونطبّق scale (يعمل بنفس الشكل على كل المتصفحات)
+    function fitFirstPage() {
+      var b = document.getElementById('fitBody'), c = document.getElementById('fitContent');
+      if (!b || !c) return;
+      var avail = b.clientHeight, s = 1, i;
+      c.style.transformOrigin = 'top right';
+      for (i = 0; i < 4; i++) {
+        c.style.transform = 'none'; c.style.width = (100 / s) + '%';
+        var h = c.getBoundingClientRect().height;
+        if (h <= avail) { if (s === 1) { c.style.width = ''; } break; }
+        s = Math.max(0.4, avail / h);
+      }
+      if (s < 1) {
+        c.style.width = (100 / s) + '%'; c.style.transform = 'scale(' + s + ')';
+        var guard = 0;
+        while (c.getBoundingClientRect().height > avail && s > 0.4 && guard < 30) {
+          s -= 0.02; c.style.width = (100 / s) + '%'; c.style.transform = 'scale(' + s + ')'; guard++;
+        }
+      }
+    }
+    function go() { fitFirstPage(); setTimeout(function () { window.focus(); window.print(); }, 400); }
+    var waits = [(document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve()];
+    Array.prototype.forEach.call(document.images, function (im) {
+      if (!im.complete) waits.push(new Promise(function (res) { im.onload = im.onerror = res; }));
+    });
+    Promise.all(waits).then(go);
+  })();
+<\/script>
+</body>
+</html>`;
+
+  w.document.open();
+  w.document.write(fullHtml);
+  w.document.close();
+}
+
+/* ---------- Payments modal ---------- */
+let openPaymentsIdx = null;
+let currentUploadPayIdx = null;
+
+function openPayments(idx) {
+  openPaymentsIdx = idx; const c = contracts[idx];
+  document.getElementById('paymentsTitle').textContent = (currentLang === 'ar' ? 'دفعات عقد: ' : 'Payments: ') + c.name;
+  document.getElementById('paymentsSub').textContent = ''; document.getElementById('np_amount').value = ''; document.getElementById('np_date').value = '';
+  document.getElementById('pm_free').checked = !!c.free; document.getElementById('pm_first_pay').checked = c.payments.some(p => p.dueDate === c.date);
+  updateFreeUI(c.free); renderPaymentsList(); document.getElementById('paymentsOverlay').classList.add('show');
+}
+function updateFreeUI(isFree) { document.getElementById('pm_nonfree_section').style.display = isFree ? 'none' : 'block'; document.getElementById('pm_free_note').style.display = isFree ? 'block' : 'none'; }
+function toggleFreeContract() { const c = contracts[openPaymentsIdx]; const isFree = document.getElementById('pm_free').checked; c.free = isFree; if (isFree) { c.payments = []; document.getElementById('pm_first_pay').checked = false; } updateFreeUI(isFree); save(); renderPaymentsList(); render(); }
+function toggleFirstPayment() { const c = contracts[openPaymentsIdx]; const checked = document.getElementById('pm_first_pay').checked; if (checked) { if (!c.payments.some(p => p.dueDate === c.date)) c.payments.unshift({ amount: 0, dueDate: c.date, paid: false, method: null }); } else { const idx = c.payments.findIndex(p => p.dueDate === c.date); if (idx !== -1) c.payments.splice(idx, 1); } save(); renderPaymentsList(); render(); }
+
+function triggerPaymentCheckUpload(payIdx) {
+  currentUploadPayIdx = payIdx;
+  document.getElementById('checkUploadInput').click();
+}
+
+function handlePaymentCheckUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 8 * 1024 * 1024) { alert('حجم الملف كبير جداً'); e.target.value=''; return; }
+  
+  if (file.type === 'application/pdf') {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+       contracts[openPaymentsIdx].payments[currentUploadPayIdx].checkAttachment = { name: file.name, type: 'pdf', data: ev.target.result };
+       save(); renderPaymentsList();
+    };
+    reader.readAsDataURL(file);
+  } else if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > 800) { height = Math.round(height * 800 / width); width = 800; }
+          const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height); 
+          contracts[openPaymentsIdx].payments[currentUploadPayIdx].checkAttachment = { name: file.name, type: 'image', data: canvas.toDataURL('image/jpeg', 0.7) }; 
+          save(); renderPaymentsList();
+        }; 
+        img.src = e.target.result;
+    }; reader.readAsDataURL(file);
+  } else {
+    alert('صور أو PDF فقط');
+  }
+  e.target.value = '';
+}
+
+function viewCheckAttachment(payIdx) {
+  const att = contracts[openPaymentsIdx].payments[payIdx].checkAttachment;
+  if (!att) return;
+  const w = window.open('', '_blank');
+  if (att.type === 'pdf') w.document.write(`<title>${escapeHtml(att.name)}</title><iframe src="${att.data}" style="position:fixed;inset:0;width:100%;height:100%;border:none;"></iframe>`);
+  else w.document.write(`<title>${escapeHtml(att.name)}</title><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${att.data}" style="max-width:100%;max-height:100vh;"></body>`);
+}
+
+function removeCheckAttachment(payIdx) {
+  if(!confirm(currentLang === 'ar' ? 'هل أنت متأكد من إزالة الشيك؟' : 'Are you sure you want to remove the check?')) return;
+  delete contracts[openPaymentsIdx].payments[payIdx].checkAttachment;
+  save();
+  renderPaymentsList();
+}
+
+function renderPaymentsList() {
+  const c = contracts[openPaymentsIdx]; const list = document.getElementById('paymentsList');
+  if (c.payments.length === 0) list.innerHTML = '';
+  else list.innerHTML = c.payments.map((p, i) => {
+    const st = p.paid ? { cls: 'green', label: d().paidLabel } : getTimeStatus(p.dueDate);
+    
+    let methodHtml = '';
+    if (p.paid) {
+      methodHtml = `
+      <div style="width:100%; margin-top: 8px; display:flex; gap: 8px; align-items:center;">
+        <select class="pay-method-select" onchange="editPaymentMethod(${i}, this.value)">
+          <option value="cash" ${p.method === 'cash' ? 'selected' : ''}>نقداً</option>
+          <option value="check" ${p.method === 'check' ? 'selected' : ''}>شيك</option>
+        </select>
+        ${p.method === 'check' ? `<button class="attach-btn" onclick="triggerPaymentCheckUpload(${i})">إرفاق شيك</button>` : ''}
+        ${p.method === 'check' && p.checkAttachment ? `<button class="attach-chip" onclick="viewCheckAttachment(${i})">عرض الشيك</button> <button class="attach-remove" onclick="removeCheckAttachment(${i})">إزالة الشيك</button>` : ''}
+      </div>`;
+    }
+
+    return `
+    <li class="row-${st.cls}" style="flex-direction:column; align-items:stretch;">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+        <div class="pay-left">
+          <input type="checkbox" ${p.paid ? 'checked' : ''} onchange="togglePaid(${i})">
+          <input type="number" min="0" step="0.001" class="pay-amount-input" value="${p.amount}" onchange="editPaymentAmount(${i}, this.value)">
+          <input type="date" class="pay-date-input" value="${p.dueDate}" onchange="editPaymentDate(${i}, this.value)">
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span class="status-badge status-${st.cls}">${st.label}</span>
+          <button class="pay-remove" onclick="removePayment(${i})">×</button>
+        </div>
+      </div>
+      ${methodHtml}
+    </li>`;
+  }).join('');
+  const total = c.payments.reduce((s, p) => s + Number(p.amount || 0), 0); const paidTotal = c.payments.filter(p => p.paid).reduce((s, p) => s + Number(p.amount || 0), 0);
+  document.getElementById('paymentsTotals').textContent = d().totalLabel + ': ' + fmtMoney(total) + ' — ' + d().paidTotalLabel + ': ' + fmtMoney(paidTotal) + ' — ' + d().remainingLabel + ': ' + fmtMoney(total - paidTotal);
+}
+function togglePaid(i) { 
+  const p = contracts[openPaymentsIdx].payments[i]; 
+  p.paid = !p.paid; 
+  if(p.paid && !p.method) p.method = 'cash'; 
+  save(); renderPaymentsList(); render(); 
+}
+function editPaymentMethod(i, method) { contracts[openPaymentsIdx].payments[i].method = method; save(); renderPaymentsList(); }
+function editPaymentAmount(i, val) { contracts[openPaymentsIdx].payments[i].amount = parseFloat(val) || 0; save(); renderPaymentsList(); render(); }
+function editPaymentDate(i, val) { contracts[openPaymentsIdx].payments[i].dueDate = val; save(); renderPaymentsList(); }
+function removePayment(i) { contracts[openPaymentsIdx].payments.splice(i, 1); save(); renderPaymentsList(); render(); }
+document.getElementById('addPaymentBtn').addEventListener('click', () => {
+  const amount = parseFloat(document.getElementById('np_amount').value); const dueDate = document.getElementById('np_date').value;
+  if (!(amount > 0) || !dueDate) { alert('أدخل مبلغ صحيح وتاريخ استحقاق'); return; }
+  contracts[openPaymentsIdx].payments.push({ amount, dueDate, paid: false, method: null }); document.getElementById('np_amount').value = ''; document.getElementById('np_date').value = ''; save(); renderPaymentsList(); render();
+});
+document.getElementById('closePaymentsBtn').addEventListener('click', () => { document.getElementById('paymentsOverlay').classList.remove('show'); });
+
+/* ---------- Edit contract modal ---------- */
+function getSelectedFreqFor(prefix) { const sel = document.getElementById(prefix + '_freq').value; if (sel === 'custom') { const v = parseFloat(document.getElementById(prefix + '_freq_custom').value); return v > 0 ? v : null; } return parseFloat(sel); }
+function openEditModal(idx) {
+  editIdx = idx; const c = contracts[idx];
+  document.getElementById('e_name').value = c.name; document.getElementById('e_date').value = c.date; document.getElementById('e_phone').value = c.phone; document.getElementById('e_addr').value = c.addr;
+  if ([12, 6, 4, 3, 2, 1].includes(c.freq)) { document.getElementById('e_freq').value = String(c.freq); document.getElementById('e_customFreqField').style.display = 'none'; } else { document.getElementById('e_freq').value = 'custom'; document.getElementById('e_customFreqField').value = c.freq; document.getElementById('e_customFreqField').style.display = 'block'; }
+  document.getElementById('e_duration').value = c.duration; ['e_err_name','e_err_date','e_err_phone','e_err_addr','e_err_duration'].forEach(id => document.getElementById(id).style.display = 'none'); document.getElementById('editOverlay').classList.add('show');
+}
+function closeEditModal() { document.getElementById('editOverlay').classList.remove('show'); }
+document.getElementById('e_freq').addEventListener('change', function() { document.getElementById('e_customFreqField').style.display = this.value === 'custom' ? 'block' : 'none'; });
+function validateAndSaveEdit() {
+  const c = contracts[editIdx]; const name = document.getElementById('e_name').value.trim(); const date = document.getElementById('e_date').value; const phone = document.getElementById('e_phone').value.trim(); const addr = document.getElementById('e_addr').value.trim(); const freq = getSelectedFreqFor('e'); const duration = parseFloat(document.getElementById('e_duration').value);
+  let valid = true;
+  [['e_name','e_err_name',!!name],['e_date','e_err_date',!!date],['e_phone','e_err_phone',!!phone],['e_addr','e_err_addr',!!addr],['e_duration','e_err_duration',duration>0]].forEach(([fid, eid, ok]) => { const errEl = document.getElementById(eid); if (!ok) { errEl.style.display = 'block'; valid = false; } else errEl.style.display = 'none'; });
+  if (!freq) { alert('حدد معدل الزيارات'); valid = false; }
+  if (!valid) return;
+  if ((date !== c.date) || (freq !== c.freq) || (duration !== c.duration)) {
+    if (!confirm('تغيير تاريخ التوقيع أو المدة سيعيد إنشاء جدول الزيارات وسيفقد أي زيارات مُعلّمة. متابعة؟')) return;
+    c.visits = generateVisits(date, freq, duration);
+  }
+  c.name = name; c.date = date; c.phone = phone; c.addr = addr; c.freq = freq; c.duration = duration; save(); render(); closeEditModal();
+}
+document.getElementById('editCancelBtn').addEventListener('click', closeEditModal); document.getElementById('editSaveBtn').addEventListener('click', validateAndSaveEdit);
+
+function deleteRow(idx) {
+  if (!confirm('تأكيد حذف هذا العقد؟')) return;
+  contracts.splice(idx, 1);
+  save();
+  render();
+}
+
+/* ---------- Contract notes (Editor) ---------- */
+let contractNotesIdx = null;
+function ensureContractNotes(c) { if (!c.contractNotes) c.contractNotes = { photos: [], textNotes: [''] }; if (!c.contractNotes.photos) c.contractNotes.photos = []; if (!c.contractNotes.textNotes || c.contractNotes.textNotes.length === 0) c.contractNotes.textNotes = ['']; return c.contractNotes; }
+function openContractNotes(idx) {
+  contractNotesIdx = idx; const c = contracts[idx]; ensureContractNotes(c);
+  document.getElementById('contractNotesSub').textContent = c.name + ' — ' + c.addr;
+  renderContractPhotoGrid(); renderContractTextNotes(); document.getElementById('contractNotesOverlay').classList.add('show');
+}
+function closeContractNotes() { document.getElementById('contractNotesOverlay').classList.remove('show'); }
+function renderContractPhotoGrid() {
+  const c = contracts[contractNotesIdx]; const notes = ensureContractNotes(c);
+  document.getElementById('contractPhotoGrid').innerHTML = notes.photos.map(p => {
+    if(p.type === 'pdf') {
+       return `<div class="photo-card"><div class="pdf-preview" onclick="viewContractPhoto('${p.id}')">PDF</div>
+       <input type="text" class="photo-title-input" value="${escapeHtml(p.title || '')}" placeholder="اسم الملف" onchange="editContractPhotoTitle('${p.id}', this.value)">
+       <button class="photo-remove" onclick="removeContractPhoto('${p.id}')">إزالة</button></div>`;
+    } else {
+       return `<div class="photo-card"><img src="${p.data}" onclick="viewContractPhoto('${p.id}')">
+       <input type="text" class="photo-title-input" value="${escapeHtml(p.title || '')}" placeholder="عنوان الصورة" onchange="editContractPhotoTitle('${p.id}', this.value)">
+       <button class="photo-remove" onclick="removeContractPhoto('${p.id}')">إزالة</button></div>`;
+    }
+  }).join('') +
+  `<label class="add-photo-card"><span style="font-size:22px;">+</span><span>إضافة مرفق</span><input type="file" accept="image/*,application/pdf" style="display:none" onchange="addContractAttachment(this)"></label>`;
+}
+function addContractAttachment(inputEl) { 
+  const file = inputEl.files[0]; if (!file) return; 
+  if (file.type === 'application/pdf') {
+     const reader = new FileReader();
+     reader.onload = (e) => { ensureContractNotes(contracts[contractNotesIdx]).photos.push({ id: internalId(), title: file.name, data: e.target.result, type: 'pdf' }); save(); renderContractPhotoGrid(); };
+     reader.readAsDataURL(file);
+  } else {
+     const reader = new FileReader();
+     reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > 800) { height = Math.round(height * 800 / width); width = 800; }
+          const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height); 
+          ensureContractNotes(contracts[contractNotesIdx]).photos.push({ id: internalId(), title: '', data: canvas.toDataURL('image/jpeg', 0.7), type: 'image' }); 
+          save(); renderContractPhotoGrid();
+        }; 
+        img.src = e.target.result;
+     }; reader.readAsDataURL(file);
+  }
+  inputEl.value = ''; 
+}
+function editContractPhotoTitle(photoId, title) { const photo = ensureContractNotes(contracts[contractNotesIdx]).photos.find(p => p.id === photoId); if (photo) photo.title = title; save(); }
+function removeContractPhoto(photoId) { if (!confirm('إزالة المرفق؟')) return; const notes = ensureContractNotes(contracts[contractNotesIdx]); notes.photos = notes.photos.filter(p => p.id !== photoId); save(); renderContractPhotoGrid(); }
+function viewContractPhoto(photoId) {
+  const photo = ensureContractNotes(contracts[contractNotesIdx]).photos.find(p => p.id === photoId); if (!photo) return;
+  const w = window.open('', '_blank'); 
+  if(photo.type === 'pdf') {
+     w.document.write(`<title>${escapeHtml(photo.title || 'PDF')}</title><iframe src="${photo.data}" style="position:fixed;inset:0;width:100%;height:100%;border:none;"></iframe>`);
+  } else {
+     w.document.write(`<title>${escapeHtml(photo.title || 'photo')}</title><body style="margin:0;background:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;"><img src="${photo.data}" style="max-width:100%;max-height:90vh;">${photo.title ? `<div style="color:#fff;font-family:Arial;margin-top:10px;font-size:14px;">${escapeHtml(photo.title)}</div>` : ''}</body>`);
+  }
+}
+function renderContractTextNotes() {
+  const notes = ensureContractNotes(contracts[contractNotesIdx]);
+  document.getElementById('contractTextNotesList').innerHTML = notes.textNotes.map((note, i) => `
+    <div class="report-notes-row"><input type="text" value="${escapeHtml(note)}" onchange="editContractTextNote(${i}, this.value)" placeholder="ملاحظة ${i + 1}">
+    ${notes.textNotes.length > 1 ? `<button class="note-remove" type="button" onclick="removeContractTextNote(${i})">×</button>` : ''}</div>`).join('');
+}
+function editContractTextNote(i, val) { ensureContractNotes(contracts[contractNotesIdx]).textNotes[i] = val; save(); }
+function removeContractTextNote(i) { const notes = ensureContractNotes(contracts[contractNotesIdx]); notes.textNotes.splice(i, 1); if (notes.textNotes.length === 0) notes.textNotes.push(''); save(); renderContractTextNotes(); }
+document.getElementById('addContractNoteBtn').addEventListener('click', () => { ensureContractNotes(contracts[contractNotesIdx]).textNotes.push(''); renderContractTextNotes(); });
+document.getElementById('closeContractNotesBtn').addEventListener('click', closeContractNotes); 
+
+/* ---------- Add contract modal ---------- */
+function getSelectedFreq() { const sel = document.getElementById('f_freq').value; if (sel === 'custom') { const v = parseFloat(document.getElementById('f_freq_custom').value); return v > 0 ? v : null; } return parseFloat(sel); }
+function updatePreview() { const freq = getSelectedFreq(); const duration = parseFloat(document.getElementById('f_duration').value); const box = document.getElementById('previewBox'); if (freq && duration > 0) box.textContent = 'عدد الزيارات المتوقع: ' + Math.round(freq * duration) + ' زيارة'; else box.textContent = 'عدد الزيارات المتوقع: —'; }
+document.getElementById('f_freq').addEventListener('change', function() { document.getElementById('customFreqField').style.display = this.value === 'custom' ? 'block' : 'none'; updatePreview(); }); document.getElementById('f_freq_custom').addEventListener('input', updatePreview); document.getElementById('f_duration').addEventListener('input', updatePreview);
+
+function openModal() {
+  document.getElementById('f_name').value = ''; document.getElementById('f_date').value = ''; document.getElementById('f_phone').value = ''; document.getElementById('f_addr').value = ''; document.getElementById('f_freq').value = '2'; document.getElementById('f_freq_custom').value = ''; document.getElementById('customFreqField').style.display = 'none'; document.getElementById('f_duration').value = '1';
+  ['err_name','err_date','err_phone','err_addr','err_duration'].forEach(id => document.getElementById(id).style.display = 'none'); updatePreview(); document.getElementById('overlay').classList.add('show'); document.getElementById('f_name').focus();
+}
+function closeModal() { document.getElementById('overlay').classList.remove('show'); }
+
+function validateAndSave() {
+  const name = document.getElementById('f_name').value.trim(); const date = document.getElementById('f_date').value; const phone = document.getElementById('f_phone').value.trim(); const addr = document.getElementById('f_addr').value.trim(); const freq = getSelectedFreq(); const duration = parseFloat(document.getElementById('f_duration').value);
+  let valid = true;
+  [['f_name','err_name',!!name],['f_date','err_date',!!date],['f_phone','err_phone',!!phone],['f_addr','err_addr',!!addr],['f_duration','err_duration',duration>0]].forEach(([fid, eid, ok]) => { const errEl = document.getElementById(eid); if (!ok) { errEl.style.display = 'block'; valid = false; } else errEl.style.display = 'none'; });
+  if (!freq) { alert('حدد معدل الزيارات'); valid = false; } if (!valid) return;
+  contracts.push({ id: internalId(), name, date, phone, addr, freq, duration, visits: generateVisits(date, freq, duration), payments: [] }); save(); render(); closeModal();
+}
+
+function exportExcel() {
+  if (contracts.length === 0) return; const wb = XLSX.utils.book_new();
+  const mainHeaders = ['اسم العميل','تاريخ التوقيع','رقم الهاتف','العنوان','معدل الزيارات'];
+  const mainRows = contracts.map(c => [c.name, c.date, c.phone, c.addr, freqLabel(c.freq)]);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([mainHeaders, ...mainRows]), 'العقود');
+
+  const maxVisits = Math.max(0, ...contracts.map(c => c.visits.length));
+  const vHeaders = ['اسم العميل', 'رقم الهاتف'];
+  for(let i=1; i<=maxVisits; i++) vHeaders.push('زيارة ' + i);
+  const vRows = contracts.map(c => {
+     let r = [c.name, c.phone];
+     for(let i=0; i<maxVisits; i++) r.push(c.visits[i] ? c.visits[i].date + (c.visits[i].done?' (تمت)':'') : '');
+     return r;
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([vHeaders, ...vRows]), 'الزيارات');
+
+  const maxPays = Math.max(0, ...contracts.map(c => c.payments.length));
+  const pHeaders = ['اسم العميل', 'رقم الهاتف'];
+  for(let i=1; i<=maxPays; i++) { pHeaders.push('تاريخ الدفعة ' + i); pHeaders.push('قيمة الدفعة ' + i); }
+  const pRows = contracts.map(c => {
+     let r = [c.name, c.phone];
+     for(let i=0; i<maxPays; i++) {
+        const p = c.payments[i];
+        r.push(p ? p.dueDate + (p.paid?' (مدفوعة)':'') : '');
+        r.push(p ? p.amount : '');
+     }
+     return r;
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([pHeaders, ...pRows]), 'الدفعات');
+
+  XLSX.writeFile(wb, 'عقود_الصيانة.xlsx');
+}
+
+document.getElementById('addBtn').addEventListener('click', openModal); 
+document.getElementById('cancelBtn').addEventListener('click', closeModal); 
+document.getElementById('saveBtn').addEventListener('click', validateAndSave); 
+
+// إغلاق النوافذ عند النقر خارجها
+document.querySelectorAll('.overlay').forEach(el => {
+  el.addEventListener('click', (e) => {
+    if (e.target.classList.contains('overlay')) {
+      e.target.classList.remove('show');
+    }
+  });
+});
+
+document.getElementById('appLogoImg').src = COMPANY_LOGO;
+load();
+</script>
+</body>
+</html>
